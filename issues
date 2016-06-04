@@ -1,0 +1,3 @@
+1. parse_mesh.py: compute_dfs computes document frequencies of terms. Severyn's code considers both questions and answers because they are both short texts. In the initial mesh experiment, I consider both mesh answers and questions(abstracts+titles). Later this should be changed. MeSH terms may not be considered in df.
+2. if a mesh term extracted from MEDLINE does not exist in the MeSH vocabulary, its associated clean mesh term and entry terms are itself, the raw format, just lower case.
+3. 
