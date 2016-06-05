@@ -90,8 +90,13 @@ def parse(rawDataFile, outDir):
 
 def loadAll():
     '''Load all '''
-    raw_mesh_file = "/home/w2wei/Research/mesh/data/NLM/d2016.bin"
-    vocab_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/mesh_entry_vocab"
+    ## For idash-cloud
+    utils_dir = "/home/w2wei/projects/pointwiseLTR/data/utils/"
+    raw_mesh_file = os.path.join(utils_dir,"d2016.bin")
+    vocab_dir = os.path.join(utils_dir, "mesh_entry_vocab")
+    # ##  For idash-meta-dev
+    # raw_mesh_file = "/home/w2wei/Research/mesh/data/NLM/d2016.bin"
+    # vocab_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/mesh_entry_vocab"
     if not os.path.exists(vocab_dir):
         os.makedirs(vocab_dir)    
     try:
@@ -105,8 +110,13 @@ def loadAll():
     return [vocab, phrase_idx, phrase_dict, rawMesh_meshAndEntry_dict]
 
 if __name__ == "__main__":
-    raw_mesh_file = "/home/w2wei/Research/mesh/data/NLM/d2016.bin"
-    vocab_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/mesh_entry_vocab"
+    ## For idash-cloud
+    utils_dir = "/home/w2wei/projects/pointwiseLTR/data/utils/"
+    raw_mesh_file = os.path.join(utils_dir,"d2016.bin")
+    vocab_dir = os.path.join(utils_dir, "mesh_entry_vocab")  
+    ##  For idash-meta-dev  
+    # raw_mesh_file = "/home/w2wei/Research/mesh/data/NLM/d2016.bin"
+    # vocab_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/mesh_entry_vocab"
     t0=time.time()
     vocab, phrase_idx, phrase_dict, rawMesh_meshAndEntry_dict = loadAll()
     t1=time.time()

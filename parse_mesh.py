@@ -217,8 +217,10 @@ if __name__ == '__main__':
     title and abstract --> query
     mesh, entry, print entry --> document
     '''
-
-    data_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/pointwise_ltr/sample/raw"
+    ## for idash-meta-dev
+    # data_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/pointwise_ltr/sample/raw"
+    ## for idash-cloud
+    data_dir = "/home/w2wei/projects/pointwiseLTR/data/sample"
     train_sample = os.path.join(data_dir, "sample_train.txt")  # "/home/w2wei/Research/mesh/data/deep_pmcoa/sentences" ## a subset of the training set
     train_files = [train_sample]
 
