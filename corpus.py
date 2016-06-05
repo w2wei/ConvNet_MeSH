@@ -128,9 +128,14 @@ class Corpus(object):
 
 
 def loadCorpus():
-    data_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/pointwise_ltr/sample"
-    rawdata_dir = os.path.join(data_dir, "raw") ## raw data
-    outdata_dir = os.path.join(data_dir, "clean") ## processed data
+    ## for idash-meta-dev
+    # data_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/pointwise_ltr/sample"
+    # rawdata_dir = os.path.join(data_dir, "raw") ## raw data
+    # outdata_dir = os.path.join(data_dir, "clean") ## processed data
+    ## for idash-cloud
+    data_dir = "/home/w2wei/projects/pointwiseLTR/data"
+    rawdata_dir = os.path.join(data_dir, "sample")
+    outdata_dir = os.path.join(rawdata_dir, "clean_data") ## processed data
     for path in [data_dir, rawdata_dir, outdata_dir]:
         if not os.path.exists(path):
             os.makedirs(path)

@@ -102,7 +102,6 @@ def loadAll():
     try:
         vocab, phrase_idx, phrase_dict = pickle.load(file(os.path.join(vocab_dir, "all_mesh_and_entry.pkl"),"rb"))
     except Exception as e:
-        print e
         vocab, phrase_idx, phrase_dict = parse(raw_mesh_file, vocab_dir)
 
     rawMesh_meshAndEntry_dict = loadMeshEntryDict(raw_mesh_file, vocab_dir)
