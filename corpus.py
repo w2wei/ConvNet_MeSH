@@ -11,10 +11,10 @@ import os, pickle, time
 
 class Corpus(object):
     '''Parse raw MEDLINE records; extract PMID, title, abstract, and MeSH'''
-    def __init__(self, medline_dir, outDataDir):
+    def __init__(self, medline_dir, medline_file, outDataDir):
         self.medDir = medline_dir
         self.outDataDir = outDataDir
-        self.inFile = os.path.join(self.medDir, "sample_merged.txt")
+        self.inFile = os.path.join(self.medDir, medline_file)
         self.tiab = {}
         self.mesh = {}
 
@@ -127,7 +127,7 @@ class Corpus(object):
         return textDict
 
 
-def loadCorpus():
+def loadCorpus(rawDataFile):
     ## for idash-meta-dev
     # data_dir = "/home/w2wei/Research/mesh/data/deep_pmcoa/pointwise_ltr/sample"
     # rawdata_dir = os.path.join(data_dir, "raw") ## raw data
@@ -139,7 +139,7 @@ def loadCorpus():
     for path in [data_dir, rawdata_dir, outdata_dir]:
         if not os.path.exists(path):
             os.makedirs(path)
-    corpus = Corpus(rawdata_dir, outdata_dir)
+    corpus = Corpus(rawdata_dir, rawDataFile, outdata_dir)
     corpus.run()
     print "corpus ready"
     return corpus

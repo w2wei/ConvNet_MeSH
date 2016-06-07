@@ -82,7 +82,7 @@ def mesh_parser(termList):
 def load_data(fname, stoplist):
     '''Parse raw MEDLINE records; extract PMID, title, abstract, and MeSH'''
     qids, questions, answers, labels = [], [], [], []
-    data = loadCorpus()
+    data = loadCorpus(fname)
     pmidList = data.mesh.keys() ## all pmids
 
     noneAnsRec = {}
@@ -240,7 +240,7 @@ if __name__ == '__main__':
         subprocess.call("/bin/cat {} > {}".format(files, all_fname), shell=True)
 
         t0=time.time()
-        qids, questions, answers, labels = load_data(all_fname, stoplist)
+        qids, questions, answers, labels = load_data(all_fname, stoplist) ## load data from sample_merged
         t1=time.time()
         print "data loading time: ",t1-t0 # 55 secs for 817 documents, 22689 answers
 
@@ -264,7 +264,7 @@ if __name__ == '__main__':
         add_to_vocab(questions, alphabet)
 
         basename = os.path.basename(train)
-        # cPickle.dump(alphabet, open(os.path.join(outdir, 'vocab.pickle'), 'w'))
+        cPickle.dump(alphabet, open(os.path.join(outdir, 'vocab.pickle'), 'w'))
 
         dummy_word_idx = alphabet.fid
 
@@ -272,11 +272,10 @@ if __name__ == '__main__':
         a_max_sent_length = max(map(lambda x: len(x), answers))
         print 'q_max_sent_length', q_max_sent_length
         print 'a_max_sent_length', a_max_sent_length
-        # raw_input("ck1...")
+
         # Convert dev and test sets
         for fname in [train, dev, test]: ## extract additional features from all datasets
             qids, questions, answers, labels = load_data(fname, stoplist)
-
             overlap_feats = compute_overlap_features(questions, answers, stoplist=None, word2df=word2dfs)
             overlap_feats_stoplist = compute_overlap_features(questions, answers, stoplist=stoplist, word2df=word2dfs)
             overlap_feats = np.hstack([overlap_feats, overlap_feats_stoplist])
@@ -294,22 +293,22 @@ if __name__ == '__main__':
             answers_idx = convert2indices(answers, alphabet, dummy_word_idx, a_max_sent_length)
 
             basename, _ = os.path.splitext(os.path.basename(fname))
-            # print basename
-            # print "basename ", basename
-            # print os.path.join(outdir, '{}.qids.npy'.format(basename))
-            # print qids.shape
-            # print os.path.join(outdir, '{}.questions.npy'.format(basename))
-            # print questions_idx.shape
-            # print os.path.join(outdir, '{}.answers.npy'.format(basename))
-            # print answers_idx.shape
-            # print os.path.join(outdir, '{}.labels.npy'.format(basename))
-            # print labels.shape
-            # print os.path.join(outdir, '{}.overlap_feats.npy'.format(basename))
-            # print overlap_feats.shape
-            # print os.path.join(outdir, '{}.q_overlap_indices.npy'.format(basename))
-            # print q_overlap_indices.shape
-            # print os.path.join(outdir, '{}.a_overlap_indices.npy'.format(basename))
-            # print a_overlap_indices.shape
+            print basename
+            print "basename ", basename
+            print os.path.join(outdir, '{}.qids.npy'.format(basename))
+            print qids.shape
+            print os.path.join(outdir, '{}.questions.npy'.format(basename))
+            print questions_idx.shape
+            print os.path.join(outdir, '{}.answers.npy'.format(basename))
+            print answers_idx.shape
+            print os.path.join(outdir, '{}.labels.npy'.format(basename))
+            print labels.shape
+            print os.path.join(outdir, '{}.overlap_feats.npy'.format(basename))
+            print overlap_feats.shape
+            print os.path.join(outdir, '{}.q_overlap_indices.npy'.format(basename))
+            print q_overlap_indices.shape
+            print os.path.join(outdir, '{}.a_overlap_indices.npy'.format(basename))
+            print a_overlap_indices.shape
             # raw_input("wait...")
 
             print "saving data..."

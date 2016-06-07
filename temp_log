@@ -1,0 +1,45 @@
+y_dev (array([0, 1], dtype=int32), array([65397, 65397]))
+y_test (array([0, 1], dtype=int32), array([65397, 65397]))
+q_train (130794, 606)
+q_dev (130794, 606)
+q_test (130794, 606)
+a_train (130794, 162)
+a_dev (130794, 162)
+a_test (130794, 162)
+max 214772
+min 0
+Generating random vocabulary for word overlap indicator features with dim: 5
+Gaussian
+Loading word embeddings from  /home/w2wei/projects/pointwiseLTR/data/sample/SAMPLE_TRAIN/emb_dim100_sample_10K_win5_model.ml.npy
+Word embedding matrix size: (214773, 100)
+batch_size 50
+n_epochs 25
+learning_rate 0.1
+max_norm 0
+Training nnet [num params: 156236]
+	FeedForwardNet [num params: 52615]
+		ParallelLookupTable [num params: 15]
+			LookupTableFastStatic: [214773    100]
+			LookupTableFast: [3 5]
+		ParallelLayer [num params: 52600]
+			FeedForwardNet [num params: 52600]
+				Conv2dLayer: filter_shape=[100   1   5 105]; input_shape=(50, 1, 614, 105)
+				NonLinearityLayer: b_shape=[100] activation=Elemwise{tanh,no_inplace}
+				KMaxPoolLayer: k_max=1
+		FlattenLayer
+	FeedForwardNet [num params: 52615]
+		ParallelLookupTable [num params: 15]
+			LookupTableFastStatic: [214773    100]
+			LookupTableFast: [3 5]
+		ParallelLayer [num params: 52600]
+			FeedForwardNet [num params: 52600]
+				Conv2dLayer: filter_shape=[100   1   5 105]; input_shape=(50, 1, 170, 105)
+				NonLinearityLayer: b_shape=[100] activation=Elemwise{tanh,no_inplace}
+				KMaxPoolLayer: k_max=1
+		FlattenLayer
+	PairwiseNoFeatsLayer: W=[100 100]
+	LinearLayer: W_shape=[201 201] b_shape=[201] activation=Elemwise{tanh,no_inplace}
+	LogisticRegression: W=[201   2], b=[2]
+Saving to exp.out/ndim=105;batch=50;max_norm=0;learning_rate=0.1;2016-06-07-09.46.54/nnet.dat
+Total params number: 156236
+Generating adadelta updates

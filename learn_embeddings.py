@@ -186,20 +186,20 @@ if __name__ == '__main__':
     num_workers = mp.cpu_count()*2
     window = 5
     
-    # sentences = Sentence(pmcoa_sent_dir,eval_set_dir) # 3101418
-    # print "Start training..."
-    # t1 = time.time()
-    # model = models.Word2Vec(sentences,size=feature_num,window=window,min_count=min_word_count,workers=num_workers)
-    # t2 = time.time()
-    # print "Training time: ",t2-t1
-    # model.save(os.path.join(models_dir,"dim100_sample_1M_window_5.ml"))
-    # print "Model saved"
-    t1=time.time()
-    model = models.Word2Vec.load(os.path.join(models_dir,"dim100_sample_1M_window_5.ml"))
-    t2=time.time()
-    print t2-t1
-    vocab = model.vocab.keys() # vocab size 1043445
-    print "vocab size ",len(vocab)
+    sentences = Sentence(pmcoa_sent_dir,eval_set_dir) # 3101418
+    print "Start training..."
+    t1 = time.time()
+    model = models.Word2Vec(sentences,size=feature_num,window=window,min_count=min_word_count,workers=num_workers)
+    t2 = time.time()
+    print "Training time: ",t2-t1
+    model.save(os.path.join(models_dir,"dim100_sample_1M_window_5.ml"))
+    print "Model saved"
+    # t1=time.time()
+    # model = models.Word2Vec.load(os.path.join(models_dir,"dim100_sample_1M_window_5.ml"))
+    # t2=time.time()
+    # print t2-t1
+    # vocab = model.vocab.keys() # vocab size 1043445
+    # print "vocab size ",len(vocab)
 
     # fsim = file(os.path.join(bioasq_model_dir,"model_bioasq_stemmed_vocab_%d.simwd"%len(vocab)),"w")
     # for term in vocab:
