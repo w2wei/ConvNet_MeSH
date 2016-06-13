@@ -129,9 +129,10 @@ def load_all_data(raw_train, raw_dev, raw_test, stoplist):
             cand_raw_mesh = get_cand_raw_mesh(cand_pmids, obj_list[i].nbr_tam)
             ## answers
             pos_meshList = list(set(std_raw_mesh)&set(cand_raw_mesh))
-            neg_meshList = list(set(cand_raw_mesh)-set(pos_meshList)) ## keep all false terms in candidates
+            ## keep all false terms in candidates
+            neg_meshList = list(set(cand_raw_mesh)-set(pos_meshList)) 
             # if i!=2:
-            #     neg_meshList = random.sample(neg_meshList, len(pos_meshList)) # make a neg mesh subset 
+                # neg_meshList = random.sample(neg_meshList, len(pos_meshList)) # make a neg mesh subset 
             meshNum = len(pos_meshList)+len(neg_meshList) ## answer number for this PMID
 
             for p_mesh in pos_meshList:
@@ -173,9 +174,11 @@ def load_data(raw_data, stoplist, idx):
         cand_raw_mesh = get_cand_raw_mesh(cand_pmids, raw_data.nbr_tam)
         ## answers
         pos_meshList = list(set(std_raw_mesh)&set(cand_raw_mesh))
+        ## keep all false terms from 20-NN candidates
         neg_meshList = list(set(cand_raw_mesh)-set(pos_meshList))
-        # if idx!=2:
-        #     neg_meshList = random.sample(neg_meshList, len(pos_meshList)) # make a neg mesh subset 
+        ## keep the same number of false terms as true ones in this paper
+        if idx!=2:
+            neg_meshList = random.sample(neg_meshList, len(pos_meshList)) # make a neg mesh subset 
         meshNum = len(pos_meshList)+len(neg_meshList) ## answer number for this PMID
 
         for p_mesh in pos_meshList:
@@ -320,7 +323,7 @@ if __name__ == '__main__':
     raw_test = Data(raw_data_dir, clean_data_dir)    
     raw_test.nlm2007()
 
-    outdir = os.path.join(data_dir, "Exp_7")#'{}'.format(name.upper())
+    outdir = os.path.join(data_dir, "Exp_4")#'{}'.format(name.upper())
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
