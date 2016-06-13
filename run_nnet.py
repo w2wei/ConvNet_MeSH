@@ -434,6 +434,7 @@ def main():
   timer_train = time.time()
   no_best_dev_update = 0
   num_train_batches = len(train_set_iterator)
+  
   while epoch < n_epochs:
       timer = time.time()
       for i, (x_q, x_a, x_q_overlap, x_a_overlap, y) in enumerate(tqdm(train_set_iterator), 1):
@@ -470,6 +471,8 @@ def main():
 
   y_pred_test = predict_prob_batch(test_set_iterator)
   test_acc = map_score(qids_test, y_test, y_pred_test) * 100
+  print "MAP on test set: ", test_acc/100.0
+  print
   fname = os.path.join(nnet_outdir, 'best_dev_params.epoch={:02d};batch={:05d};dev_acc={:.2f}.dat'.format(epoch, i, best_dev_acc))
   numpy.savetxt(os.path.join(nnet_outdir, 'test.epoch={:02d};batch={:05d};dev_acc={:.2f}.predictions.npy'.format(epoch, i, best_dev_acc)), y_pred)
   cPickle.dump(best_params, open(fname, 'wb'), protocol=cPickle.HIGHEST_PROTOCOL)

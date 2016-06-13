@@ -30,27 +30,28 @@ def main():
     ZEROUT_DUMMY_WORD = True
 
     ## Load data
-    data_dir = "/home/w2wei/projects/pointwiseLTR/data/sample/SAMPLE_TRAIN"
+    # data_dir = "/home/w2wei/projects/pointwiseLTR/data/sample/SAMPLE_TRAIN"
+    data_dir = "/home/w2wei/projects/pointwiseLTR/data/knn_sample/Exp_7"
 
-    q_train = numpy.load(os.path.join(data_dir, 'sample_train.questions.npy'))
-    a_train = numpy.load(os.path.join(data_dir, 'sample_train.answers.npy'))
-    q_overlap_train = numpy.load(os.path.join(data_dir, 'sample_train.q_overlap_indices.npy'))
-    a_overlap_train = numpy.load(os.path.join(data_dir, 'sample_train.a_overlap_indices.npy'))
-    y_train = numpy.load(os.path.join(data_dir, 'sample_train.labels.npy'))
+    q_train = numpy.load(os.path.join(data_dir, 'train.questions.npy'))
+    a_train = numpy.load(os.path.join(data_dir, 'train.answers.npy'))
+    q_overlap_train = numpy.load(os.path.join(data_dir, 'train.q_overlap_indices.npy'))
+    a_overlap_train = numpy.load(os.path.join(data_dir, 'train.a_overlap_indices.npy'))
+    y_train = numpy.load(os.path.join(data_dir, 'train.labels.npy'))
 
-    q_dev = numpy.load(os.path.join(data_dir, 'sample_dev.questions.npy'))
-    a_dev = numpy.load(os.path.join(data_dir, 'sample_dev.answers.npy'))
-    q_overlap_dev = numpy.load(os.path.join(data_dir, 'sample_dev.q_overlap_indices.npy'))
-    a_overlap_dev = numpy.load(os.path.join(data_dir, 'sample_dev.a_overlap_indices.npy'))
-    y_dev = numpy.load(os.path.join(data_dir, 'sample_dev.labels.npy'))
-    qids_dev = numpy.load(os.path.join(data_dir, 'sample_dev.qids.npy'))
+    q_dev = numpy.load(os.path.join(data_dir, 'dev.questions.npy'))
+    a_dev = numpy.load(os.path.join(data_dir, 'dev.answers.npy'))
+    q_overlap_dev = numpy.load(os.path.join(data_dir, 'dev.q_overlap_indices.npy'))
+    a_overlap_dev = numpy.load(os.path.join(data_dir, 'dev.a_overlap_indices.npy'))
+    y_dev = numpy.load(os.path.join(data_dir, 'dev.labels.npy'))
+    qids_dev = numpy.load(os.path.join(data_dir, 'dev.qids.npy'))
 
-    q_test = numpy.load(os.path.join(data_dir, 'sample_test.questions.npy'))
-    a_test = numpy.load(os.path.join(data_dir, 'sample_test.answers.npy'))
-    q_overlap_test = numpy.load(os.path.join(data_dir, 'sample_test.q_overlap_indices.npy'))
-    a_overlap_test = numpy.load(os.path.join(data_dir, 'sample_test.a_overlap_indices.npy'))
-    y_test = numpy.load(os.path.join(data_dir, 'sample_test.labels.npy'))
-    qids_test = numpy.load(os.path.join(data_dir, 'sample_test.qids.npy'))
+    q_test = numpy.load(os.path.join(data_dir, 'test.questions.npy'))
+    a_test = numpy.load(os.path.join(data_dir, 'test.answers.npy'))
+    q_overlap_test = numpy.load(os.path.join(data_dir, 'test.q_overlap_indices.npy'))
+    a_overlap_test = numpy.load(os.path.join(data_dir, 'test.a_overlap_indices.npy'))
+    y_test = numpy.load(os.path.join(data_dir, 'test.labels.npy'))
+    qids_test = numpy.load(os.path.join(data_dir, 'test.qids.npy'))
 
     print 'y_train', numpy.unique(y_train, return_counts=True)
     print 'y_dev', numpy.unique(y_dev, return_counts=True)
@@ -81,7 +82,8 @@ def main():
     vocab_emb_overlap[-1] = 0
 
     # Load word2vec embeddings
-    fname = os.path.join(data_dir, 'emb_dim100_sample_10K_win5_model.ml.npy')
+    # fname = os.path.join(data_dir, 'emb_dim100_sample_10K_win5_model.ml.npy')
+    fname = "/home/w2wei/projects/pointwiseLTR/data/utils/emb_dim100_sample_10K_win5_model.ml.npy"
     # fname = os.path.join(data_dir, 'emb_all_random_dim50.npy')
     print "Loading word embeddings from ", fname
     vocab_emb = numpy.load(fname)
@@ -99,7 +101,7 @@ def main():
     #######
     n_outs = 2
 
-    n_epochs = 25
+    n_epochs = 3
     batch_size = 50
     learning_rate = 0.1
     max_norm = 0
@@ -434,6 +436,8 @@ def main():
 
     y_pred_test = predict_prob_batch(test_set_iterator)
     test_acc = map_score(qids_test, y_test, y_pred_test) * 100
+    print "MAP on test set: ", test_acc/100.0
+    print    
     fname = os.path.join(nnet_outdir, 'best_dev_params.epoch={:02d};batch={:05d};dev_acc={:.2f}.dat'.format(epoch, i, best_dev_acc))
     numpy.savetxt(os.path.join(nnet_outdir, 'test.epoch={:02d};batch={:05d};dev_acc={:.2f}.predictions.npy'.format(epoch, i, best_dev_acc)), y_pred)
     cPickle.dump(best_params, open(fname, 'wb'), protocol=cPickle.HIGHEST_PROTOCOL)
