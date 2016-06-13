@@ -176,9 +176,12 @@ def load_data(raw_data, stoplist, idx):
         pos_meshList = list(set(std_raw_mesh)&set(cand_raw_mesh))
         ## keep all false terms from 20-NN candidates
         neg_meshList = list(set(cand_raw_mesh)-set(pos_meshList))
+
         ## keep the same number of false terms as true ones in this paper
         if idx!=2:
-            neg_meshList = random.sample(neg_meshList, len(pos_meshList)) # make a neg mesh subset 
+            ## make one neg mesh subset 
+            neg_meshList = random.sample(neg_meshList, min(len(neg_meshList), 2*len(pos_meshList)))
+
         meshNum = len(pos_meshList)+len(neg_meshList) ## answer number for this PMID
 
         for p_mesh in pos_meshList:
@@ -200,6 +203,56 @@ def load_data(raw_data, stoplist, idx):
             labels.append(0)
 
     return qids, questions, answers, labels     
+
+# def load_data(raw_data, stoplist, idx):
+#     '''Parse raw MEDLINE records; extract PMID, title, abstract, and MeSH'''
+#     ## idx=0, train; idx=1, dev; idx=2, test
+#     qids, questions, answers, labels = [], [], [], []
+#     pmidList = raw_data.query_pmids
+
+#     for pmid in pmidList:
+#         title, abstract, raw_mesh = raw_data.query_tam[pmid]
+#         raw_question = " ".join(title+abstract)
+#         clean_question = parser(raw_question)
+#         std_raw_mesh = mesh_parser4Lu_data(raw_mesh) ## gold standard mesh terms, raw term, lower case
+#         ## select candidates from 20 nearest neighbors
+#         sorted_nbr_dict = sorted(raw_data.nbr_dict[pmid],key=itemgetter(1),reverse=True)[:20] 
+#         cand_pmids = [x[0] for x in sorted_nbr_dict] # 20 nearest neighbor pmids
+#         ## select candidates from 50 neighbor neighbors
+#         # cand_pmids = [x[0] for x in obj_list[i].nbr_dict[pmid]] ## candidates from neighbors, from all 50 nbrs
+#         cand_raw_mesh = get_cand_raw_mesh(cand_pmids, raw_data.nbr_tam)
+#         ## answers
+#         pos_meshList = list(set(std_raw_mesh)&set(cand_raw_mesh))
+#         ## keep all false terms from 20-NN candidates
+#         neg_meshList = list(set(cand_raw_mesh)-set(pos_meshList))
+#         ## keep the same number of false terms as true ones in this paper
+#         if idx!=2:
+#             ## make one neg mesh subset 
+#             neg_meshList = random.sample(neg_meshList, len(pos_meshList)) 
+#             ## make multiple false mesh subsets
+
+
+#         meshNum = len(pos_meshList)+len(neg_meshList) ## answer number for this PMID
+
+#         for p_mesh in pos_meshList:
+#             answer = rawMesh_meshAndEntry_dict.get(p_mesh) # answer may contain None
+#             if not answer: # if answer==None
+#                 answer = [p_mesh] # answer is the pseudo mesh term itself
+#             answers.append(answer)
+#             qids.append(pmid)
+#             questions.append(clean_question)
+#             labels.append(1)
+
+#         for n_mesh in neg_meshList:
+#             answer = rawMesh_meshAndEntry_dict.get(n_mesh) ## clean mesh terms and entry terms
+#             if not answer: # if answer==None
+#                 answer = [n_mesh] # answer is the pseudo mesh term itself            
+#             answers.append(answer) #  answer may contain None
+#             qids.append(pmid)
+#             questions.append(clean_question)
+#             labels.append(0)
+
+#     return qids, questions, answers, labels   
 
 def compute_overlap_features(questions, answers, word2df=None, stoplist=None):
     '''the overlap percentage of tokens between evey pair of question and answer'''
@@ -323,7 +376,7 @@ if __name__ == '__main__':
     raw_test = Data(raw_data_dir, clean_data_dir)    
     raw_test.nlm2007()
 
-    outdir = os.path.join(data_dir, "Exp_4")#'{}'.format(name.upper())
+    outdir = os.path.join(data_dir, "Exp_8")#'{}'.format(name.upper())
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 

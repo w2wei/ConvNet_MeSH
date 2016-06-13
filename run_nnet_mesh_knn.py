@@ -31,7 +31,7 @@ def main():
 
     ## Load data
     # data_dir = "/home/w2wei/projects/pointwiseLTR/data/sample/SAMPLE_TRAIN"
-    data_dir = "/home/w2wei/projects/pointwiseLTR/data/knn_sample/Exp_4"
+    data_dir = "/home/w2wei/projects/pointwiseLTR/data/knn_sample/Exp_8"
 
     q_train = numpy.load(os.path.join(data_dir, 'train.questions.npy'))
     a_train = numpy.load(os.path.join(data_dir, 'train.answers.npy'))
