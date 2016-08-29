@@ -1,0 +1,3 @@
+Exp 32: Training on SMALL 200, test on L1000, use KNN+MTI features, epoch=25
+Actually epoch=10
+MAP: 0.647

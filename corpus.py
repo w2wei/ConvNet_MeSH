@@ -1,4 +1,6 @@
 '''
+    Load MEDLINE records and extract titles, abstracts, and MeSH terms. 
+    Return the results in dictionaries, {PMID:[[title],[abstract]]}, {PMID:[MeSH terms]}
     Prepare data for Point-wise LTR algorithm.
     Created on Jan 17, 2016,
     Updated on Jun 1, 2016

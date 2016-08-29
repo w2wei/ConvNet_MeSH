@@ -1,0 +1,115 @@
+#!/usr/bin/env python
+
+INDEX_DIR = "IndexFiles.index"
+
+import sys, os, lucene, threading, time
+from datetime import datetime
+
+from java.io import File
+from org.apache.lucene.analysis.miscellaneous import LimitTokenCountAnalyzer
+from org.apache.lucene.analysis.standard import StandardAnalyzer
+from org.apache.lucene.document import Document, Field, FieldType
+from org.apache.lucene.index import FieldInfo, IndexWriter, IndexWriterConfig
+from org.apache.lucene.store import SimpleFSDirectory
+from org.apache.lucene.util import Version
+
+"""
+This class is loosely based on the Lucene (java implementation) demo class 
+org.apache.lucene.demo.IndexFiles.  It will take a directory as an argument
+and will index all of the files in that directory and downward recursively.
+It will index on the file path, the file name and the file contents.  The
+resulting Lucene index will be placed in the current directory and called
+'index'.
+
+
+"""
+
+class Ticker(object):
+
+    def __init__(self):
+        self.tick = True
+
+    def run(self):
+        while self.tick:
+            sys.stdout.write('.')
+            sys.stdout.flush()
+            time.sleep(1.0)
+
+class IndexFiles(object):
+    """Usage: python IndexFiles <doc_directory>"""
+
+    def __init__(self, root, storeDir, analyzer, yearList):
+        if not os.path.exists(storeDir):
+            os.mkdir(storeDir)
+
+        store = SimpleFSDirectory(File(storeDir)) # Store index files in the file syste. try NIOFSDirectory
+        analyzer = LimitTokenCountAnalyzer(analyzer, 1048576) # maxTokenCount=1048576, this analyzer limit the number of tokens per field, not necessary for indexing MEDLINE
+        config = IndexWriterConfig(Version.LUCENE_CURRENT, analyzer)
+        config.setOpenMode(IndexWriterConfig.OpenMode.CREATE)
+        writer = IndexWriter(store, config)
+
+        self.indexDocs(root, yearList, writer)
+        ticker = Ticker()
+        print 'commit index',
+        threading.Thread(target=ticker.run).start()
+        writer.commit()
+        writer.close()
+        ticker.tick = False
+        print 'done'
+
+    def indexDocs(self, root, yearList, writer):
+        t1 = FieldType() # for short items, e.g. file name.
+        t1.setIndexed(True)
+        t1.setStored(True)
+        t1.setTokenized(False)
+        t1.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS) # DOCS_AND_FREQS_AND_POSITIONS_OFFSETS
+        
+        t2 = FieldType() # for content
+        t2.setIndexed(True)
+        t2.setStored(False) # don't store the original text
+        t2.setTokenized(True)
+        t2.setIndexOptions(FieldInfo.IndexOptions.DOCS_AND_FREQS_AND_POSITIONS)
+        
+        doc_count = 0
+        for root, dirnames, filenames in os.walk(root):
+            year = os.path.basename(root)
+            print "currently index ", year
+            try:
+                year = int(year)
+            except:
+                continue
+            if year not in yearList:
+                continue
+            for filename in filenames:
+                try:
+                    path = os.path.join(root, filename)
+                    file = open(path)
+                    contents = unicode(file.read(), 'iso-8859-1')
+                    file.close()
+                    doc = Document()
+                    doc.add(Field("name", filename, t1))
+                    doc.add(Field("path", root, t1))
+                    doc.add(Field("year", str(year),t1))
+                    if len(contents) > 0:
+                        doc.add(Field("contents", contents, t2))
+                    else:
+                        print "warning: no content in %s" % filename
+                    writer.addDocument(doc)
+                    doc_count+=1
+                except Exception, e:
+                    print "Failed in indexDocs:", e
+                if doc_count%10000==0:
+                    print "Indexed doc num: ", doc_count
+
+if __name__ == '__main__':
+    lucene.initVM(vmargs=['-Djava.awt.headless=true'])
+    start = datetime.now()
+    try:
+        base_dir = os.path.dirname(os.path.abspath(sys.argv[0])) # root
+        IndexFiles(sys.argv[1], os.path.join(base_dir, INDEX_DIR), # store os.path.join(base_dir, INDEX_DIR)
+                   StandardAnalyzer(Version.LUCENE_CURRENT))
+        end = datetime.now()
+        print end - start
+    except Exception, e:
+        print "Failed: ", e
+        raise e

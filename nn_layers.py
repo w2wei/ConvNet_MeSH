@@ -95,13 +95,12 @@ class FeedForwardNet(Layer):
 
 
 class ParallelLayer(FeedForwardNet):
-
-  def output_func(self, input):
-    layers_out = []
-    for layer in self.layers:
-      layer.set_input(input)
-      layers_out.append(layer.output)
-    return T.concatenate(layers_out, axis=1)
+    def output_func(self, input):
+        layers_out = []
+        for layer in self.layers:
+            layer.set_input(input)
+            layers_out.append(layer.output)
+        return T.concatenate(layers_out, axis=1)
 
 
 class DropoutLayer(Layer):
@@ -181,24 +180,24 @@ class PadLayer(Layer):
     return out
 
 
-
 class LookupTableFastStatic(Layer):
     """ Basic linear transformation layer (W.X + b).
     Padding is used to force conv2d with valid mode behave as working in full mode."""
     def __init__(self, W=None, pad=None):
-      super(LookupTableFastStatic, self).__init__()
-      self.pad = pad
-      self.W = theano.shared(value=W, name='W_emb', borrow=True)
+        super(LookupTableFastStatic, self).__init__()
+        self.pad = pad
+        self.W = theano.shared(value=W, name='W_emb', borrow=True)
 
     def output_func(self, input):
-      out = self.W[input.flatten()].reshape((input.shape[0], 1, input.shape[1], self.W.shape[1]))
-      if self.pad:
-        pad_matrix = T.zeros((out.shape[0], out.shape[1], self.pad, out.shape[3]))
-        out = T.concatenate([pad_matrix, out, pad_matrix], axis=2)
-      return out
+        ## this input is the original input batch, not padded. padded tensor is the input for the conv layer
+        out = self.W[input.flatten()].reshape((input.shape[0], 1, input.shape[1], self.W.shape[1]))
+        if self.pad:
+            pad_matrix = T.zeros((out.shape[0], out.shape[1], self.pad, out.shape[3]))
+            out = T.concatenate([pad_matrix, out, pad_matrix], axis=2)
+        return out
 
     def __repr__(self):
-      return "{}: {}".format(self.__class__.__name__, self.W.shape.eval())
+        return "{}: {}".format(self.__class__.__name__, self.W.shape.eval())
 
 
 class LookupTableStatic(LookupTable):
@@ -209,20 +208,19 @@ class LookupTableStatic(LookupTable):
 
 
 class ParallelLookupTable(FeedForwardNet):
-  def output_func(self, x):
-    layers_out = []
-    assert len(x) == len(self.layers)
-    for x, layer in zip(x, self.layers):
-      layer.set_input(x)
-      layers_out.append(layer.output)
-    return T.concatenate(layers_out, axis=3)
+    def output_func(self, x):
+        layers_out = []
+        assert len(x) == len(self.layers)
+        for x, layer in zip(x, self.layers):
+            layer.set_input(x)
+            layers_out.append(layer.output)
+        return T.concatenate(layers_out, axis=3)
 
 
 class FlattenLayer(Layer):
-  """ Basic linear transformation layer (W.X + b) """
-
-  def output_func(self, input):
-    return input.flatten(2)
+    """ Basic linear transformation layer (W.X + b) """
+    def output_func(self, input):
+        return input.flatten(2)
 
 
 class MaxOutLayer(Layer):
@@ -302,21 +300,20 @@ class LinearLayer(Layer):
 
 
 class NonLinearityLayer(Layer):
-  def __init__(self, b_size, b=None, activation=T.tanh):
-    super(NonLinearityLayer, self).__init__()
-    if not b:
-      b_values = numpy.zeros(b_size, dtype=theano.config.floatX)
-      b = theano.shared(value=b_values, name='b', borrow=True)
-    self.b = b
-    self.activation = activation
-    # In input we get a tensor (batch_size, nwords, ndim)
-    self.biases = [self.b]
+    def __init__(self, b_size, b=None, activation=T.tanh): 
+        super(NonLinearityLayer, self).__init__()
+        if not b:
+            b_values = numpy.zeros(b_size, dtype=theano.config.floatX)
+            b = theano.shared(value=b_values, name='b', borrow=True)
+        self.b = b
+        self.activation = activation
+        self.biases = [self.b]
 
-  def output_func(self, input):
-    return self.activation(input + self.b.dimshuffle('x', 0, 'x', 'x'))
+    def output_func(self, input):
+        return self.activation(input + self.b.dimshuffle('x', 0, 'x', 'x'))
 
-  def __repr__(self):
-    return "{}: b_shape={} activation={}".format(self.__class__.__name__, self.b.shape.eval(), self.activation)
+    def __repr__(self):
+        return "{}: b_shape={} activation={}".format(self.__class__.__name__, self.b.shape.eval(), self.activation)
 
 
 class NonLinearityLayerForConv1d(Layer):
@@ -361,19 +358,19 @@ class FoldingLayerSym(Layer):
 
 
 class KMaxPoolLayer(Layer):
-  """Folds across last axis (ndim)."""
-  def __init__(self, k_max):
-    super(KMaxPoolLayer, self).__init__()
-    self.k_max = k_max
+    """Folds across last axis (ndim)."""
+    def __init__(self, k_max):
+        super(KMaxPoolLayer, self).__init__()
+        self.k_max = k_max
 
-  def output_func(self, input):
-    # In input we get a tensor (batch_size, nwords, ndim)
-    if self.k_max == 1:
-      return conv1d.max_pooling(input)
-    return conv1d.k_max_pooling(input, self.k_max)
+    def output_func(self, input):
+        # In input we get a tensor (batch_size, nwords, ndim)
+        if self.k_max == 1:
+            return conv1d.max_pooling(input)
+        return conv1d.k_max_pooling(input, self.k_max)
 
-  def __repr__(self):
-    return "{}: k_max={}".format(self.__class__.__name__, self.k_max)
+    def __repr__(self):
+        return "{}: k_max={}".format(self.__class__.__name__, self.k_max)
 
 
 class MaxPoolLayer(Layer):
@@ -428,11 +425,15 @@ class Conv1dLayer(ConvolutionLayer):
 
 
 class Conv2dLayer(ConvolutionLayer):
-
-  def output_func(self, input):
-    return conv.conv2d(input, self.W, border_mode='valid',
-                       filter_shape=self.filter_shape,
-                       image_shape=self.input_shape)
+    ''' Return a 4D tensor, i.e., a set of feature maps generated by convolutional layer. 
+        Tensor is of shape (batch size, nb filters, output row, output col).'''
+    def output_func(self, input):
+        return conv.conv2d(input, self.W, border_mode='valid', filter_shape=self.filter_shape,image_shape=self.input_shape)
+    ## border_mode ({'valid', 'full'}) for output row number: 
+    ## valid only apply filter to complete patches of the image. 
+    ## Generates output of shape: image_shape - filter_shape + 1. 
+    ## full zero-pads image to multiple of filter shape to 
+    ## generate output of shape: image_shape + filter_shape - 1.
 
 
 # def Conv2dMaxPool(rng, filter_shape, activation):
@@ -804,24 +805,22 @@ class PairwiseWithFeatsLayer(Layer):
 
 
 class PairwiseNoFeatsLayer(Layer):
-  def __init__(self, q_in, a_in, activation=T.tanh):
-    super(PairwiseNoFeatsLayer, self).__init__()
+    def __init__(self, q_in, a_in, activation=T.tanh):
+        super(PairwiseNoFeatsLayer, self).__init__()
 
-    W = build_shared_zeros((q_in, a_in), 'W_softmax_pairwise')
+        W = build_shared_zeros((q_in, a_in), 'W_softmax_pairwise')
+        self.W = W
+        self.weights = [self.W]
+    def __repr__(self):
+        return "{}: W={}".format(self.__class__.__name__, self.W.shape.eval())
 
-    self.W = W
-    self.weights = [self.W]
-
-  def __repr__(self):
-    return "{}: W={}".format(self.__class__.__name__, self.W.shape.eval())
-
-  def output_func(self, input):
-      # P(Y|X) = softmax(W.X + b)
-      q, a = input[0], input[1]
-      # dot = T.batched_dot(q, T.batched_dot(a, self.W))
-      dot = T.batched_dot(q, T.dot(a, self.W.T))
-      out = T.concatenate([dot.dimshuffle(0, 'x'), q, a], axis=1)
-      return out
+    def output_func(self, input):
+        # P(Y|X) = softmax(W.X + b)
+        q, a = input[0], input[1]
+        # dot = T.batched_dot(q, T.batched_dot(a, self.W))
+        dot = T.batched_dot(q, T.dot(a, self.W.T))
+        out = T.concatenate([dot.dimshuffle(0, 'x'), q, a], axis=1)
+        return out
 
 
 class PairwiseOnlySimWithFeatsLayer(Layer):

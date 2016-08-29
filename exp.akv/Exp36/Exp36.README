@@ -1,0 +1,2 @@
+Exp 36: Train on SMALL200, test on NLM2007, use KNN+MTI features, epoch=25
+Dev set randomly sampled from L1000, 200 pmids

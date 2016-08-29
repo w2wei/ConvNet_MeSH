@@ -92,7 +92,6 @@ def main():
   print 'a_dev', a_dev.shape
   print 'a_test', a_test.shape
 
-  raw_input("wait...")
   ## Get the word embeddings from the nnet trained on SemEval
   # ndim = 40
   # nnet_outdir = 'exp/ndim=60;batch=100;max_norm=0;learning_rate=0.1;2014-12-02-15:53:14'
@@ -103,8 +102,8 @@ def main():
   numpy_rng = numpy.random.RandomState(123)
   q_max_sent_size = q_train.shape[1]
   a_max_sent_size = a_train.shape[1]
-  # print 'max', numpy.max(a_train)
-  # print 'min', numpy.min(a_train)
+  print 'max', numpy.max(a_train)
+  print 'min', numpy.min(a_train)
 
   ndim = 5
   print "Generating random vocabulary for word overlap indicator features with dim:", ndim
@@ -135,7 +134,7 @@ def main():
   #######
   n_outs = 2
 
-  n_epochs = 25
+  n_epochs = 5
   batch_size = 50
   learning_rate = 0.1
   max_norm = 0

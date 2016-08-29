@@ -1,0 +1,3 @@
+Exp 35: Train on SMALL200, test on NLM2007, use KNN feature, epoch=25
+Dev set is 200 randomly selected pmids from L1000.
+

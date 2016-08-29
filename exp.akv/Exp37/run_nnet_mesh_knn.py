@@ -20,12 +20,12 @@ warnings.filterwarnings("ignore")  # TODO remove
 
 print "All modules loaded"
 
-## THEANO DEBUG FLAGS
-theano.config.optimizer = 'fast_compile'
-theano.config.exception_verbosity = 'high'
-
+### THEANO DEBUG FLAGS
+# theano.config.optimizer = 'fast_compile'
+# theano.config.exception_verbosity = 'high'
 
 def main():
+    exp_num = sys.argv[1]
     # ZEROUT_DUMMY_WORD = False
     ZEROUT_DUMMY_WORD = True
 
@@ -39,12 +39,18 @@ def main():
     a_train = numpy.load(os.path.join(data_dir, 'train.answers.npy'))
     q_overlap_train = numpy.load(os.path.join(data_dir, 'train.q_overlap_indices.npy'))
     a_overlap_train = numpy.load(os.path.join(data_dir, 'train.a_overlap_indices.npy'))
+    # q_knn_count_train = numpy.zeros(shape=a_knn_count_train.shape,dtype=numpy.int32)
+    q_knn_count_train = numpy.load(os.path.join(data_dir, 'train.q_knn_counts.npy'))
+    a_knn_count_train = numpy.load(os.path.join(data_dir, 'train.a_knn_counts.npy'))
     y_train = numpy.load(os.path.join(data_dir, 'train.labels.npy'))
 
     q_dev = numpy.load(os.path.join(data_dir, 'dev.questions.npy'))
     a_dev = numpy.load(os.path.join(data_dir, 'dev.answers.npy'))
     q_overlap_dev = numpy.load(os.path.join(data_dir, 'dev.q_overlap_indices.npy'))
     a_overlap_dev = numpy.load(os.path.join(data_dir, 'dev.a_overlap_indices.npy'))
+    q_knn_count_dev = numpy.load(os.path.join(data_dir, 'dev.q_knn_counts.npy'))
+    a_knn_count_dev = numpy.load(os.path.join(data_dir, 'dev.a_knn_counts.npy'))
+    # q_knn_count_dev = numpy.zeros(shape=a_knn_count_dev.shape, dtype=numpy.int32)
     y_dev = numpy.load(os.path.join(data_dir, 'dev.labels.npy'))
     qids_dev = numpy.load(os.path.join(data_dir, 'dev.qids.npy'))
 
@@ -52,6 +58,9 @@ def main():
     a_test = numpy.load(os.path.join(data_dir, 'test.answers.npy'))
     q_overlap_test = numpy.load(os.path.join(data_dir, 'test.q_overlap_indices.npy'))
     a_overlap_test = numpy.load(os.path.join(data_dir, 'test.a_overlap_indices.npy'))
+    q_knn_count_test = numpy.load(os.path.join(data_dir, 'test.q_knn_counts.npy'))
+    a_knn_count_test = numpy.load(os.path.join(data_dir, 'test.a_knn_counts.npy'))
+    # q_knn_count_test = numpy.zeros(shape=a_knn_count_test.shape, dtype=numpy.int32)
     y_test = numpy.load(os.path.join(data_dir, 'test.labels.npy'))
     qids_test = numpy.load(os.path.join(data_dir, 'test.qids.npy'))
 
@@ -67,48 +76,68 @@ def main():
     print 'a_dev', a_dev.shape
     print 'a_test', a_test.shape
 
+    print "q_knn_count_train, ", q_knn_count_train.shape, q_knn_count_train.sum()
+    print "a_knn_count_train, ", a_knn_count_train.shape, a_knn_count_train.sum()
+
+    print "q_knn_count_dev, ", q_knn_count_dev.shape, q_knn_count_dev.sum()
+    print "a_knn_count_dev, ", a_knn_count_dev.shape, a_knn_count_dev.sum()
+
+    print "q_knn_count_test, ", q_knn_count_test.shape, q_knn_count_test.sum()
+    print "a_knn_count_test, ", a_knn_count_test.shape, a_knn_count_test.sum()
+
     numpy_rng = numpy.random.RandomState(123)
     q_max_sent_size = q_train.shape[1]
     a_max_sent_size = a_train.shape[1]
     print 'max', numpy.max(a_train)
     print 'min', numpy.min(a_train)
 
+    ## for overlap indicator features
     ndim = 5
     print "Generating random vocabulary for word overlap indicator features with dim:", ndim
     dummy_word_id = numpy.max(a_overlap_train)
-    # vocab_emb_overlap = numpy_rng.uniform(-0.25, 0.25, size=(dummy_word_id+1, ndim))
-    print "Gaussian"
-    vocab_emb_overlap = numpy_rng.randn(dummy_word_id+1, ndim) * 0.25
-    # vocab_emb_overlap = numpy_rng.randn(dummy_word_id+1, ndim) * 0.05
-    # vocab_emb_overlap = numpy_rng.uniform(-0.25, 0.25, size=(dummy_word_id+1, ndim))
-    vocab_emb_overlap[-1] = 0
+    vocab_emb_overlap = numpy_rng.randn(dummy_word_id+1, ndim) * 0.25 ## Gaussian
+    vocab_emb_overlap[-1] = 0 ## dummy indicator variable set to zero
+    print "Word overlap indicator matrix size: ", vocab_emb_overlap.shape
+    print vocab_emb_overlap
+    print
 
+    ## for knn count features
+    ndim = 5
+    print "Generating random vocabulary for knn count features with dim:", ndim
+    max_knn_count = 20 # restricted by 20 nearest neighbors
+    vocab_emb_knn_count = numpy_rng.randn(max_knn_count+1, ndim) # one additional row for 0
+    vocab_emb_knn_count[0] = 0 ## the first row, idx=0, is for invalid examples
+    print "KNN count matrix size: ", vocab_emb_knn_count.shape
+    print
+
+    ## for words in sentences
     # Load word2vec embeddings
     # fname = os.path.join(data_dir, 'emb_dim100_sample_10K_win5_model.ml.npy')
-    
     # fname = "/home/w2wei/projects/pointwiseLTR/data/utils/emb_dim100_sample_10K_win5_model.ml.npy" ## 1.3M training data
     util_dir = "/home/w2wei/projects/pointwiseLTR/data/utils"
-    emb_file_name = sys.argv[2]
+    emb_file_name = "emb_dim100_sample_1M_window_5.ml.npy" # sys.argv[2]
     # emb_file_name = "emb_dim100_sample_10K_win5_model.ml.npy"
     fname = os.path.join(util_dir, emb_file_name) ## 10K training data
-    # fname = os.path.join(data_dir, 'emb_all_random_dim50.npy')
-    print "Loading word embeddings from ", fname
+    print "Loading word embeddings from ", emb_file_name
     vocab_emb = numpy.load(fname)
     ndim = vocab_emb.shape[1]
     dummpy_word_idx = numpy.max(a_train)
     print "Word embedding matrix size:", vocab_emb.shape
 
+    ## Define model variables
     x = T.dmatrix('x')
     x_q = T.lmatrix('q')
     x_q_overlap = T.lmatrix('q_overlap')
+    x_q_knn_count = T.lmatrix('q_knn_count')
     x_a = T.lmatrix('a')
     x_a_overlap = T.lmatrix('a_overlap')
+    x_a_knn_count = T.lmatrix('a_knn_count')
     y = T.ivector('y')
 
     #######
     n_outs = 2
 
-    n_epochs = 3
+    n_epochs = 25
     batch_size = 5
     learning_rate = 0.1
     max_norm = 0
@@ -119,56 +148,96 @@ def main():
     print 'max_norm', max_norm
 
     ## 1st conv layer.
-    ndim = vocab_emb.shape[1] + vocab_emb_overlap.shape[1]
+    '''adjust ndim and include the knn features'''
+    ndim = vocab_emb.shape[1] + vocab_emb_overlap.shape[1] + vocab_emb_knn_count.shape[1]
 
     ### Nonlinearity type
     # activation = nn_layers.relu_f
     activation = T.tanh
 
-    dropout_rate = 0.5
-    nkernels = 100
-    q_k_max = 1
-    a_k_max = 1
+    # dropout_rate = 0.5
+    nkernels = 100 # filter number
+    q_k_max = 1 # k max pooling
+    a_k_max = 1 # k max pooling
 
     # filter_widths = [3,4,5]
     q_filter_widths = [5]
     a_filter_widths = [5]
 
     ###### QUESTION ######
+    ## return padded tensor as part of input for the conv layer
     lookup_table_words = nn_layers.LookupTableFastStatic(W=vocab_emb, pad=max(q_filter_widths)-1)
+    # print "lookup_table_words weights: ", len(lookup_table_words.weights), lookup_table_words.W.get_value().shape
+    # note: layer lookup_table_words, self.W is not added to list self.weights
+
     lookup_table_overlap = nn_layers.LookupTableFast(W=vocab_emb_overlap, pad=max(q_filter_widths)-1)
+    # print "lookup_table_overlap weights: ", len(lookup_table_overlap.weights), lookup_table_overlap.W.get_value().shape
+    # note: layer lookup_table_overlap, self.W is added to list self.weights
+    
+    lookup_table_knn_count = nn_layers.LookupTableFast(W=vocab_emb_knn_count, pad=max(q_filter_widths)-1)
+    ## vocab_emb_knn_count shape 21*5
 
-    lookup_table = nn_layers.ParallelLookupTable(layers=[lookup_table_words, lookup_table_overlap])
+    # lookup_table returns a 4D tensor
+    lookup_table = nn_layers.ParallelLookupTable(layers=[lookup_table_words, lookup_table_overlap, lookup_table_knn_count])
+    # note: lookup_table, self.weights only contains W from lookup_table_overlap, but not lookup_table_words
 
+    ## conv layer input data shape, notice this is the input shape after padding. 
     num_input_channels = 1
     input_shape = (batch_size, num_input_channels, q_max_sent_size + 2*(max(q_filter_widths)-1), ndim)
-
+    ## input batch is a 4D tensor. 1: batch size, 
+                         #  2: nkernels, 
+                         #  3: input_shape[2]-filter_shape+1 (in valid mode) = 495,
+                         #  4: ndim = 110. 100 for word emb, 5 for overlap indicator feat, 5 for knn count feat
     conv_layers = []
     for filter_width in q_filter_widths:
         filter_shape = (nkernels, num_input_channels, filter_width, ndim)
         conv = nn_layers.Conv2dLayer(rng=numpy_rng, filter_shape=filter_shape, input_shape=input_shape)
+        # print "conv: ", type(conv), conv.get_value().shape
+        # raw_input("check conv shape...")
+        ## conv is a 4D tensor. 1: batch size, 
+                             #  2: nkernels, 
+                             #  3: input_shape[2]-filter_shape+1 (in valid mode) = 495,
+                             #  4: conv value, scalar
         non_linearity = nn_layers.NonLinearityLayer(b_size=filter_shape[0], activation=activation)
-        pooling = nn_layers.KMaxPoolLayer(k_max=q_k_max)
+        # print 'non_linearity: ', non_linearity.type, non_linearity.get_value().shape
+        # raw_input("check non_linearity shape...")
+        ## non_linearity is a 4D tensor. 1: batch size, 
+                             #  2: nkernels, 
+                             #  3: input_shape[2]-filter_shape+1 (in valid mode) = 495,
+                             #  4: tanh(conv value), scalar
+        pooling = nn_layers.KMaxPoolLayer(k_max=q_k_max) # return T.max(input, axis=2)
+        # print "pooling: ", pooling.type, pooling.get_value().shape
+        # raw_input("check pooling shape...")
+        ## pooling is a 3D tensor. 1: batch size, 
+                             #  2: nkernels, 
+                             #  3: max tanh(conv value), scalar
         conv2dNonLinearMaxPool = nn_layers.FeedForwardNet(layers=[conv, non_linearity, pooling])
+        ## conv2dNonLinearMaxPool is a 3D tensor.1: batch size, 
+                             #  2: nkernels, 
+                             #  3: max tanh(conv value), scalar
         conv_layers.append(conv2dNonLinearMaxPool)
 
     join_layer = nn_layers.ParallelLayer(layers=conv_layers)
-    flatten_layer = nn_layers.FlattenLayer()
-
+    ## join_layer is a 3D tensor. 1: batch size, 
+                               #  2: nkernels, 
+                               #  3: max tanh(conv value) vector
+    flatten_layer = nn_layers.FlattenLayer() ## flatten in axis 2
+    ## flatten_layer is a 2D maxtrix. 1. batch size,
+                                #    2. nkernels, value: a list of max values from all filters
     nnet_q = nn_layers.FeedForwardNet(layers=[
                                   lookup_table,
                                   join_layer,
                                   flatten_layer,
                                   ])
-    nnet_q.set_input((x_q, x_q_overlap))
+    nnet_q.set_input((x_q, x_q_overlap, x_q_knn_count))
     ######
 
 
     ###### ANSWER ######
     lookup_table_words = nn_layers.LookupTableFastStatic(W=vocab_emb, pad=max(q_filter_widths)-1)
     lookup_table_overlap = nn_layers.LookupTableFast(W=vocab_emb_overlap, pad=max(q_filter_widths)-1)
-
-    lookup_table = nn_layers.ParallelLookupTable(layers=[lookup_table_words, lookup_table_overlap])
+    lookup_table_knn_count = nn_layers.LookupTableFast(W=vocab_emb_knn_count, pad=max(q_filter_widths)-1)
+    lookup_table = nn_layers.ParallelLookupTable(layers=[lookup_table_words, lookup_table_overlap, lookup_table_knn_count])
 
     # num_input_channels = len(lookup_table.layers)
     input_shape = (batch_size, num_input_channels, a_max_sent_size + 2*(max(a_filter_widths)-1), ndim)
@@ -189,12 +258,15 @@ def main():
                                   join_layer,
                                   flatten_layer,
                                   ])
-    nnet_a.set_input((x_a, x_a_overlap))
+    nnet_a.set_input((x_a, x_a_overlap, x_a_knn_count))
     #######
     # print 'nnet_q.output', nnet_q.output.ndim
 
     q_logistic_n_in = nkernels * len(q_filter_widths) * q_k_max
+    print "q_logistic_n_in: ", q_logistic_n_in
     a_logistic_n_in = nkernels * len(a_filter_widths) * a_k_max
+    print "a_logistic_n_in: ", a_logistic_n_in
+    print 
 
   # dropout_q = nn_layers.FastDropoutLayer(rng=numpy_rng)
   # dropout_a = nn_layers.FastDropoutLayer(rng=numpy_rng)
@@ -235,10 +307,9 @@ def main():
 
   # pairwise_layer = nn_layers.PairwiseMultiOnlySimWithFeatsLayer(q_in=q_logistic_n_in,
 
-    pairwise_layer = nn_layers.PairwiseNoFeatsLayer(q_in=q_logistic_n_in,
+    pairwise_layer = nn_layers.PairwiseNoFeatsLayer(q_in=q_logistic_n_in, a_in=a_logistic_n_in)
   # pairwise_layer = nn_layers.PairwiseWithFeatsLayer(q_in=q_logistic_n_in,
-  # pairwise_layer = nn_layers.PairwiseOnlySimWithFeatsLayer(q_in=q_logistic_n_in,
-                                                a_in=a_logistic_n_in)
+  # pairwise_layer = nn_layers.PairwiseOnlySimWithFeatsLayer(q_in=q_logistic_n_in, a_in=a_logistic_n_in)
     pairwise_layer.set_input((nnet_q.output, nnet_a.output))
 
   # n_in = q_logistic_n_in + a_logistic_n_in + feats_ndim + a_logistic_n_in
@@ -255,9 +326,8 @@ def main():
     classifier.set_input(hidden_layer.output)
 
 
-    train_nnet = nn_layers.FeedForwardNet(layers=[nnet_q, nnet_a, pairwise_layer, hidden_layer, classifier],
-    # train_nnet = nn_layers.FeedForwardNet(layers=[nnet_q, nnet_a, x_hidden_layer, classifier],
-                                            name="Training nnet")
+    train_nnet = nn_layers.FeedForwardNet(layers=[nnet_q, nnet_a, pairwise_layer, hidden_layer, classifier], name="Training nnet")
+    # train_nnet = nn_layers.FeedForwardNet(layers=[nnet_q, nnet_a, x_hidden_layer, classifier], name="Training nnet")
     test_nnet = train_nnet
     #######
 
@@ -266,7 +336,7 @@ def main():
     params = train_nnet.params
 
     ts = datetime.now().strftime('%Y-%m-%d-%H.%M.%S')
-    nnet_outdir = 'exp.out/ndim={};batch={};max_norm={};learning_rate={};{}'.format(ndim, batch_size, max_norm, learning_rate, ts)
+    nnet_outdir = 'exp.out/{};ndim={};batch={};max_norm={};learning_rate={};{}'.format(exp_num, ndim, batch_size, max_norm, learning_rate, ts)
     if not os.path.exists(nnet_outdir):
         os.makedirs(nnet_outdir)
     nnet_fname = os.path.join(nnet_outdir, 'nnet.dat')
@@ -312,6 +382,8 @@ def main():
     batch_x_a = T.lmatrix('batch_x_a')
     batch_x_q_overlap = T.lmatrix('batch_x_q_overlap')
     batch_x_a_overlap = T.lmatrix('batch_x_a_overlap')
+    batch_x_q_knn_count = T.lmatrix('batch_x_q_knn_count')
+    batch_x_a_knn_count = T.lmatrix('batch_x_a_knn_count')
     batch_y = T.ivector('batch_y')
 
     # updates = sgd_trainer.get_adagrad_updates(cost, params, learning_rate=learning_rate, max_norm=max_norm, _eps=1e-6)
@@ -321,21 +393,24 @@ def main():
                    batch_x_a,
                    batch_x_q_overlap,
                    batch_x_a_overlap,
-                   # batch_x,
+                   batch_x_q_knn_count,
+                   batch_x_a_knn_count,
                    ]
 
     givens_pred = {x_q: batch_x_q,
                  x_a: batch_x_a,
                  x_q_overlap: batch_x_q_overlap,
                  x_a_overlap: batch_x_a_overlap,
-                 # x: batch_x
+                 x_q_knn_count: batch_x_q_knn_count,
+                 x_a_knn_count: batch_x_a_knn_count,
                  }
 
     inputs_train = [batch_x_q,
                  batch_x_a,
                  batch_x_q_overlap,
                  batch_x_a_overlap,
-                 # batch_x,
+                 batch_x_q_knn_count,
+                 batch_x_a_knn_count,
                  batch_y,
                  ]
 
@@ -343,7 +418,8 @@ def main():
                  x_a: batch_x_a,
                  x_q_overlap: batch_x_q_overlap,
                  x_a_overlap: batch_x_a_overlap,
-                 # x: batch_x,
+                 x_q_knn_count: batch_x_q_knn_count,
+                 x_a_knn_count: batch_x_a_knn_count,
                  y: batch_y}
 
     train_fn = theano.function(inputs=inputs_train,
@@ -360,16 +436,16 @@ def main():
                             givens=givens_pred)
 
     def predict_batch(batch_iterator):
-        preds = numpy.hstack([pred_fn(batch_x_q, batch_x_a, batch_x_q_overlap, batch_x_a_overlap) for batch_x_q, batch_x_a, batch_x_q_overlap, batch_x_a_overlap, _ in batch_iterator])
+        preds = numpy.hstack([pred_fn(batch_x_q, batch_x_a, batch_x_q_overlap, batch_x_a_overlap, batch_x_q_knn_count, batch_x_a_knn_count) for batch_x_q, batch_x_a, batch_x_q_overlap, batch_x_a_overlap, batch_x_q_knn_count, batch_x_a_knn_count, _ in batch_iterator])
         return preds[:batch_iterator.n_samples]
 
     def predict_prob_batch(batch_iterator):
-        preds = numpy.hstack([pred_prob_fn(batch_x_q, batch_x_a, batch_x_q_overlap, batch_x_a_overlap) for batch_x_q, batch_x_a, batch_x_q_overlap, batch_x_a_overlap, _ in batch_iterator])
-        return preds[:batch_iterator.n_samples]
+        preds = numpy.hstack([pred_prob_fn(batch_x_q, batch_x_a, batch_x_q_overlap, batch_x_a_overlap, batch_x_q_knn_count, batch_x_a_knn_count) for batch_x_q, batch_x_a, batch_x_q_overlap, batch_x_a_overlap, batch_x_q_knn_count, batch_x_a_knn_count, _ in batch_iterator])
+        return preds[:batch_iterator.n_samples]        
 
-    train_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_train, a_train, q_overlap_train, a_overlap_train, y_train], batch_size=batch_size, randomize=True)
-    dev_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_dev, a_dev, q_overlap_dev, a_overlap_dev, y_dev], batch_size=batch_size, randomize=False)
-    test_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_test, a_test, q_overlap_test, a_overlap_test, y_test], batch_size=batch_size, randomize=False)
+    train_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_train, a_train, q_overlap_train, a_overlap_train, q_knn_count_train, a_knn_count_train,y_train], batch_size=batch_size, randomize=True)
+    dev_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_dev, a_dev, q_overlap_dev, a_overlap_dev, q_knn_count_dev, a_knn_count_dev, y_dev], batch_size=batch_size, randomize=False)
+    test_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_test, a_test, q_overlap_test, a_overlap_test, q_knn_count_test, a_knn_count_test, y_test], batch_size=batch_size, randomize=False)
 
     labels = sorted(numpy.unique(y_test))
     print 'labels', labels
@@ -406,20 +482,20 @@ def main():
     timer_train = time.time()
     no_best_dev_update = 0
     num_train_batches = len(train_set_iterator)
+
     while epoch < n_epochs:
         timer = time.time()
-        for i, (x_q, x_a, x_q_overlap, x_a_overlap, y) in enumerate(tqdm(train_set_iterator), 1):
-            train_fn(x_q, x_a, x_q_overlap, x_a_overlap, y)
+        for i, (x_q, x_a, x_q_overlap, x_a_overlap, x_q_knn_count, x_a_knn_count, y) in enumerate(tqdm(train_set_iterator), 1):
+            train_fn(x_q, x_a, x_q_overlap, x_a_overlap, x_q_knn_count, x_a_knn_count, y)
             # Make sure the null word in the word embeddings always remains zero
 
             if ZEROUT_DUMMY_WORD:
                 zerout_dummy_word()
 
             # if i % 10 == 0 or i == num_train_batches:
-            if i == num_train_batches:
-                t0 = time.time()
+            # if i == num_train_batches:
+            if i % 500 == 0 or i == num_train_batches:
                 y_pred_dev = predict_prob_batch(dev_set_iterator)
-                # # dev_acc = map_score(qids_dev, y_dev, predict_prob_batch(dev_set_iterator)) * 100
                 dev_acc = metrics.roc_auc_score(y_dev, y_pred_dev) * 100
                 if dev_acc > best_dev_acc:
                     y_pred = predict_prob_batch(test_set_iterator)
@@ -429,8 +505,6 @@ def main():
                     best_dev_acc = dev_acc
                     best_params = [numpy.copy(p.get_value(borrow=True)) for p in params]
                     no_best_dev_update = 0
-                t1=time.time()
-                print "dev test time: ", t1-t0
 
         if no_best_dev_update >= 3:
             print "Quitting after of no update of the best score on dev set", no_best_dev_update
@@ -451,28 +525,6 @@ def main():
     fname = os.path.join(nnet_outdir, 'best_dev_params.epoch={:02d};batch={:05d};dev_acc={:.2f}.dat'.format(epoch, i, best_dev_acc))
     numpy.savetxt(os.path.join(nnet_outdir, 'test.epoch={:02d};batch={:05d};dev_acc={:.2f}.predictions.npy'.format(epoch, i, best_dev_acc)), y_pred)
     cPickle.dump(best_params, open(fname, 'wb'), protocol=cPickle.HIGHEST_PROTOCOL)
-
-    print "Running trec_eval script..."
-    N = len(y_pred_test)
-
-    df_submission = pd.DataFrame(index=numpy.arange(N), columns=['qid', 'iter', 'docno', 'rank', 'sim', 'run_id'])
-    df_submission['qid'] = qids_test
-    df_submission['iter'] = 0
-    df_submission['docno'] = numpy.arange(N)
-    df_submission['rank'] = 0
-    df_submission['sim'] = y_pred_test
-    df_submission['run_id'] = 'nnet'
-    df_submission.to_csv(os.path.join(nnet_outdir, 'submission.txt'), header=False, index=False, sep=' ')
-
-    df_gold = pd.DataFrame(index=numpy.arange(N), columns=['qid', 'iter', 'docno', 'rel'])
-    df_gold['qid'] = qids_test
-    df_gold['iter'] = 0
-    df_gold['docno'] = numpy.arange(N)
-    df_gold['rel'] = y_test
-    df_gold.to_csv(os.path.join(nnet_outdir, 'gold.txt'), header=False, index=False, sep=' ')
-
-    subprocess.call("/bin/sh run_eval.sh '{}'".format(nnet_outdir), shell=True)
-
 
 if __name__ == '__main__':
     main()

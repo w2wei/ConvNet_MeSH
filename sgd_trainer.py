@@ -74,7 +74,7 @@ class MiniBatchIteratorConstantBatchSize(object):
               yield [x[i*batch_size:(i+1)*batch_size] for x in self.datasets]
         else:
             for i in xrange(n_batches):
-              yield [x[i*batch_size:(i+1)*batch_size] for x in self.datasets]
+              yield [x[i*batch_size:(i+1)*batch_size] for x in self.datasets]     
 
 class DatasetMiniBatchIterator(object):
     """ Basic mini-batch iterator """
