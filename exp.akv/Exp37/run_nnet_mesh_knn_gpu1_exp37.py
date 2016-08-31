@@ -30,8 +30,10 @@ def main():
     ZEROUT_DUMMY_WORD = True
 
     ## Load data
-    base_dir = "/home/w2wei/projects/pointwiseLTR/data/knn_sample"
+    # data_dir = "/home/w2wei/projects/pointwiseLTR/data/sample/SAMPLE_TRAIN"
+    base_dir = "/media/workspace/weiwei/knn_sample"
     data_dir = os.path.join(base_dir, sys.argv[1])
+    # data_dir = "/home/w2wei/projects/pointwiseLTR/data/knn_sample/Exp_params_selection"
 
     q_train = numpy.load(os.path.join(data_dir, 'train.questions.npy'))
     a_train = numpy.load(os.path.join(data_dir, 'train.answers.npy'))
@@ -58,36 +60,6 @@ def main():
     a_knn_count_test = numpy.load(os.path.join(data_dir, 'test.a_knn_counts.npy'))
     y_test = numpy.load(os.path.join(data_dir, 'test.labels.npy'))
     qids_test = numpy.load(os.path.join(data_dir, 'test.qids.npy'))
-
-    q_sample_test = numpy.load(os.path.join(data_dir, 'sample_test.questions.npy'))
-    a_sample_test = numpy.load(os.path.join(data_dir, 'sample_test.answers.npy'))
-    q_overlap_sample_test = numpy.load(os.path.join(data_dir, 'sample_test.q_overlap_indices.npy'))
-    a_overlap_sample_test = numpy.load(os.path.join(data_dir, 'sample_test.a_overlap_indices.npy'))
-    q_knn_count_sample_test = numpy.load(os.path.join(data_dir, 'sample_test.q_knn_counts.npy'))
-    a_knn_count_sample_test = numpy.load(os.path.join(data_dir, 'sample_test.a_knn_counts.npy'))
-    y_sample_test = numpy.load(os.path.join(data_dir, 'sample_test.labels.npy'))
-    qids_sample_test = numpy.load(os.path.join(data_dir, 'sample_test.qids.npy'))
-
-    print 'y_train', numpy.unique(y_train, return_counts=True)
-    print 'y_dev', numpy.unique(y_dev, return_counts=True)
-    print 'y_test', numpy.unique(y_test, return_counts=True)
-
-    print 'q_train', q_train.shape
-    print 'q_dev', q_dev.shape
-    print 'q_test', q_test.shape
-
-    print 'a_train', a_train.shape
-    print 'a_dev', a_dev.shape
-    print 'a_test', a_test.shape
-
-    print "q_knn_count_train, ", q_knn_count_train.shape, q_knn_count_train.sum()
-    print "a_knn_count_train, ", a_knn_count_train.shape, a_knn_count_train.sum()
-
-    print "q_knn_count_dev, ", q_knn_count_dev.shape, q_knn_count_dev.sum()
-    print "a_knn_count_dev, ", a_knn_count_dev.shape, a_knn_count_dev.sum()
-
-    print "q_knn_count_test, ", q_knn_count_test.shape, q_knn_count_test.sum()
-    print "a_knn_count_test, ", a_knn_count_test.shape, a_knn_count_test.sum()
 
     numpy_rng = numpy.random.RandomState(123)
     q_max_sent_size = q_train.shape[1]
@@ -118,7 +90,7 @@ def main():
     # Load word2vec embeddings
     # fname = os.path.join(data_dir, 'emb_dim100_sample_10K_win5_model.ml.npy')
     # fname = "/home/w2wei/projects/pointwiseLTR/data/utils/emb_dim100_sample_10K_win5_model.ml.npy" ## 1.3M training data
-    util_dir = "/home/w2wei/projects/pointwiseLTR/data/utils"
+    util_dir = "/media/workspace/weiwei/utils"
     emb_file_name = "emb_dim100_sample_1M_window_5.ml.npy" # sys.argv[2]
     # emb_file_name = "emb_dim100_sample_10K_win5_model.ml.npy"
     fname = os.path.join(util_dir, emb_file_name) ## 10K training data
@@ -142,7 +114,7 @@ def main():
     n_outs = 2
 
     n_epochs = 25
-    batch_size = 5
+    batch_size = 500
     learning_rate = 0.1
     max_norm = 0
 
@@ -345,7 +317,7 @@ def main():
         os.makedirs(nnet_outdir)
     nnet_fname = os.path.join(nnet_outdir, 'nnet.dat')
     print "Saving to", nnet_fname
-    cPickle.dump([train_nnet, test_nnet], open(nnet_fname, 'wb'), protocol=cPickle.HIGHEST_PROTOCOL)
+    # cPickle.dump([train_nnet, test_nnet], open(nnet_fname, 'wb'), protocol=cPickle.HIGHEST_PROTOCOL)
 
     total_params = sum([numpy.prod(param.shape.eval()) for param in params])
     print 'Total params number:', total_params
@@ -450,7 +422,6 @@ def main():
     train_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_train, a_train, q_overlap_train, a_overlap_train, q_knn_count_train, a_knn_count_train,y_train], batch_size=batch_size, randomize=True)
     dev_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_dev, a_dev, q_overlap_dev, a_overlap_dev, q_knn_count_dev, a_knn_count_dev, y_dev], batch_size=batch_size, randomize=False)
     test_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_test, a_test, q_overlap_test, a_overlap_test, q_knn_count_test, a_knn_count_test, y_test], batch_size=batch_size, randomize=False)
-    sample_test_set_iterator = sgd_trainer.MiniBatchIteratorConstantBatchSize(numpy_rng, [q_sample_test, a_sample_test, q_overlap_sample_test, a_overlap_sample_test, q_knn_count_sample_test, a_knn_count_sample_test, y_sample_test], batch_size=batch_size, randomize=False)
 
     labels = sorted(numpy.unique(y_test))
     print 'labels', labels
@@ -499,20 +470,17 @@ def main():
 
             # if i % 10 == 0 or i == num_train_batches:
             # if i == num_train_batches:
-            if i % 100 == 0 or i == num_train_batches:
+            if i % 500 == 0 or i == num_train_batches:
                 y_pred_dev = predict_prob_batch(dev_set_iterator)
                 dev_acc = metrics.roc_auc_score(y_dev, y_pred_dev) * 100
                 if dev_acc > best_dev_acc:
-                    y_pred_sample = predict_prob_batch(sample_test_set_iterator)
-                    sample_test_acc = map_score(qids_test, y_test, y_pred_sample) * 100 
-                    if sample_test_acc>0.615: ## baseline MAP                 
-                        y_pred = predict_prob_batch(test_set_iterator)
-                        test_acc = map_score(qids_test, y_test, y_pred) * 100
+                    y_pred = predict_prob_batch(test_set_iterator)
+                    test_acc = map_score(qids_test, y_test, y_pred) * 100
 
-                        print('epoch: {} batch: {} dev auc: {:.4f}; test map: {:.4f}; best_dev_acc: {:.4f}'.format(epoch, i, dev_acc, test_acc, best_dev_acc))
-                        best_dev_acc = dev_acc
-                        best_params = [numpy.copy(p.get_value(borrow=True)) for p in params]
-                        no_best_dev_update = 0
+                    print('epoch: {} batch: {} dev auc: {:.4f}; test map: {:.4f}; best_dev_acc: {:.4f}'.format(epoch, i, dev_acc, test_acc, best_dev_acc))
+                    best_dev_acc = dev_acc
+                    best_params = [numpy.copy(p.get_value(borrow=True)) for p in params]
+                    no_best_dev_update = 0
 
         if no_best_dev_update >= 3:
             print "Quitting after of no update of the best score on dev set", no_best_dev_update
@@ -531,8 +499,8 @@ def main():
     print "MAP on test set: ", test_acc/100.0
     print    
     fname = os.path.join(nnet_outdir, 'best_dev_params.epoch={:02d};batch={:05d};dev_acc={:.2f}.dat'.format(epoch, i, best_dev_acc))
-    numpy.savetxt(os.path.join(nnet_outdir, 'test.epoch={:02d};batch={:05d};dev_acc={:.2f}.predictions.npy'.format(epoch, i, best_dev_acc)), y_pred)
-    cPickle.dump(best_params, open(fname, 'wb'), protocol=cPickle.HIGHEST_PROTOCOL)
+    # numpy.savetxt(os.path.join(nnet_outdir, 'test.epoch={:02d};batch={:05d};dev_acc={:.2f}.predictions.npy'.format(epoch, i, best_dev_acc)), y_pred)
+    # cPickle.dump(best_params, open(fname, 'wb'), protocol=cPickle.HIGHEST_PROTOCOL)
 
 if __name__ == '__main__':
     main()

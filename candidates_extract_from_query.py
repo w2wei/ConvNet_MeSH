@@ -105,14 +105,16 @@ def index_ngrams(clean_entry_term_mesh_dict_file, clean_mesh_dict_file, mesh_and
 
 class Candidates_from_queries(object):
     '''Find candidates from queries using string matching'''
-    def __init__(self, data_dir, resource_dir, analysis_dir, time_span, data_name):
+    def __init__(self, data_dir, data2_dir, resource_dir, analysis_dir, time_span, data_name):
         self.dataName = data_name ##  L1000, NLM2007, etc
         self.dataDir = data_dir
+        self.data2Dir = data2_dir
         self.dictDir = resource_dir ## resources from NLM, organized in dict format
         self.period = time_span ## "1997"
         self.analyDir = analysis_dir ## os.path.join(self.dataDir, "latest_3M_analysis") ## dir for mesh terms
-        self.mesh_from_query_file = os.path.join(self.analyDir,"%s_q_pmid_mesh_from_query_MEDLINE_%s.pkl"%(self.dataName, self.period))
+        self.mesh_from_query_file = os.path.join(self.analyDir,"%s_qpmid_mesh_candidates_from_queries.pkl"%(self.dataName))
         self.pmid_matched_mesh_dict = defaultdict() ## matched mesh terms in every query
+        self.query_dict = defaultdict()
 
     def run(self):
         self.load_query() ## {pmid:title+abstract text in raw format}
@@ -183,8 +185,9 @@ if __name__=="__main__":
     data_dir = "/home/w2wei/data"
     nlm_dir = os.path.join(data_dir, "nlm_data")
     mesh2016_file = os.path.join(nlm_dir, "d2016.bin")
-    
-    analysis_dir = os.path.join(data_dir, 'analysis', '%s_query_PMID_on_MEDLINE_%s'%(data_name, time_span))
+
+    data2_dir = "/home/w2wei/data2"
+    analysis_dir = os.path.join(data2_dir, 'analysis', '%s_query_PMID_on_MEDLINE_%s'%(data_name, time_span))
     if not os.path.exists(analysis_dir):
         os.makedirs(analysis_dir)
 
@@ -204,6 +207,6 @@ if __name__=="__main__":
     mesh_and_entry_token_index_file = os.path.join(nlm_dir, "mesh_and_entry_terms_token_index.pkl")
     index_ngrams(clean_entry_term_mesh_dict_file, clean_mesh_dict_file, mesh_and_entry_token_index_file)
 
-    ## Experiment 1, on MEDLINE 1997 corpus
-    exp = Candidates_from_queries(data_dir, nlm_dir, analysis_dir, time_span, data_name)
+    ## Experiment
+    exp = Candidates_from_queries(data_dir, data2_dir, nlm_dir, analysis_dir, time_span, data_name)
     exp.run()

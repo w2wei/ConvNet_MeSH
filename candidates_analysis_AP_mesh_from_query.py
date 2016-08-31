@@ -16,8 +16,8 @@ from candidates_extract_from_query import *
 class Eval_candidates_from_queries(Candidates_from_queries):
     '''Evaluate the coverage of candidates extracted from queries using string matching'''  
 
-    def __init__(self, data_dir, resource_dir, analysis_dir, time_span, data_name, pmid_year_dict_file, mesh_base_dir):
-        super(Eval_candidates_from_queries, self).__init__(data_dir, resource_dir, analysis_dir, time_span, data_name)
+    def __init__(self, data_dir, data2_dir, resource_dir, analysis_dir, time_span, data_name, pmid_year_dict_file, mesh_base_dir):
+        super(Eval_candidates_from_queries, self).__init__(data_dir, data2_dir, resource_dir, analysis_dir, time_span, data_name)
         self.pmid_year_dict = cPickle.load(file(pmid_year_dict_file))
         self.mesh_base_dir = mesh_base_dir
         self.query_dict = defaultdict() ## {pmid:title+abstract text in raw format}
@@ -88,7 +88,7 @@ if __name__=="__main__":
     mesh2016_file = os.path.join(nlm_dir, "d2016.bin")
     data_name = "L1000"
     
-    analysis_dir = os.path.join(data_dir, 'analysis', '%s_query_PMID_on_MEDLINE_%s'%(data_name, time_span))
+    analysis_dir = os.path.join(data2_dir, 'analysis', '%s_query_PMID_on_MEDLINE_%s'%(data_name, time_span))
     if not os.path.exists(analysis_dir):
         os.makedirs(analysis_dir)
 
@@ -108,5 +108,5 @@ if __name__=="__main__":
     mesh_and_entry_token_index_file = os.path.join(nlm_dir, "mesh_and_entry_terms_token_index.pkl")
     index_ngrams(clean_entry_term_mesh_dict_file, clean_mesh_dict_file, mesh_and_entry_token_index_file)
 
-    exp = Eval_candidates_from_queries(data_dir, nlm_dir, analysis_dir, time_span, data_name, pmid_year_dict_file, mesh_base_dir)
+    exp = Eval_candidates_from_queries(data_dir, data2_dir, nlm_dir, analysis_dir, time_span, data_name, pmid_year_dict_file, mesh_base_dir)
     exp.run()
