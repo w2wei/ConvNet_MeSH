@@ -5,7 +5,7 @@ computes the inversed document frequencies of terms in the vocabulary,
 represents documents using a Doc2Vec+TFIDF representation and finds KNN documents using cosine similarity based on this representation.
 
 
-P for production, A for analysis, number indicates the order of scripts to be executed
+P for production, A for analysis, number indicates the order of scripts to be executed, * indicates optional
 
 P1.candidates_build.py (old name: corpus_medline_build.py)
    Retrieve all PMID for given years from PubMed, and then download MEDLINE associated with these PMID. 
@@ -19,20 +19,27 @@ P3.candidates_index.py (old name: corpus_medline_index.py)
 P4.candidates_retrieve.py (old name: corpus_medline_retrieve.py)
    Retrieve documents and rank them using BM25 algorithm using pyLucene, and save pmids of 50 most similar articles.
 
-P5.candidates_d2v.py (old name: corpus_medline_d2v.py)
+*P5.candidates_d2v.py (old name: corpus_medline_d2v.py)
    Learn distributed D2V representations on selected titles and abstracts.
    based on: corpus_medline_gensim_D2V.py, corpus_medline_gensim_W2V.py, corpus_medline_D2V_for_MEDLINE_95_97.py
 
-P6.candidates_tfidf.py (old name: corpus_medline_tfidf.py)
+*P6.candidates_tfidf.py (old name: corpus_medline_tfidf.py)
    Compute the inversed document frequencies of terms in the vocabulary based on MEDLINE 1985-2015.
    based on: corpus_medline_tfidf_3M.py, corpus_medline_tfidf_for_MEDLINE_95_97.py
 
-P7.candidates_d2v_tfidf_knn.py (old name: corpus_medline_d2v_tfidf_knn.py)
+*P7.candidates_d2v_tfidf_knn.py (old name: corpus_medline_d2v_tfidf_knn.py)
    Find KNN using D2V+TFIDF.
    based on corpus_medline_knn.py, corpus_medline_knn_d2v_tfidf.py, corpus_medline_knn_d2v_tfidf_arc.py, corpus_medline_knn_for_MEDLINE95_97.py
 
-P8.candidates_extract_from_query
+P8.candidates_from_query.py
    Extract MeSH candidates of L1000, NLM2007, and SMALL200 query PMIDs from their titles and abstracts. No evaluation. Can be generalized to other query data.
+
+P9.candidates_from_BM25KNN.py
+   Find candiates from BM25KNN neighbors
+
+P10.candidates_tops_from_BM25_and_queries.py
+    Get top candidates from BM25KNN neighbors and queries
+
 
 
 A1.candidates_analysis_BM25KNN_from_latest_3M.py (old name: corpus_medline_knn_mesh.py)
@@ -52,14 +59,19 @@ A5.candidates_analysis_AP_query_text.py (old name: corpus_medline_mesh_in_query_
    Analyze the average precision of candidates from query texts, using either string match or MetaMap
 
 A6.candidates_analysis_AP_joint_knn_and_query_text.py (old name: corpus_medline_mesh_in_query_coverage.py, corpus_medline_knn_mesh_coverage.py)
-   Analyze the average precision of candidates from query texts and BM25 KNN
+   Analyze the average precision of candidates from query texts and BM25 KNN, for NLM2007 only
 
 A7.candidates_analysis_AP_top_terms.py (old name: corpus_medline_top_cand_coverage.py)
-   Analyze the average precision of top candidates from joint sets
+   Analyze the average precision of top candidates from joint sets, for NLM2007 only
 
-A8.candidates_analysis_AP_mesh_from_query.py
+A8.candidates_analysis_from_queries.py (old: candidates_analysis_AP_mesh_from_query.py)
    Analyze the average precision of candidates extracted from queries. Run after candidates_extract_from_query.py.
 
-A9.candidates_analysis_AP_BM25_knn.py
-   Analyze the average precision of BM25 KNN candidates from various corpora of different time.
+A9.candidates_analysis_miscellaneous_KNN.py (old: candidates_analysis_AP_BM25_knn.py)
+   Analyze the average precision of KNN candidates from various representations, including BM25, d2v, tfidf, d2v-tfidf.
 
+A10.candidates_analysis_BM25KNN.py
+   Analyze the average precision of BM25 KNN candidates
+
+A11.candidates_analysis_top_BM25_and_queries.py
+   Analyze the average precision of top candidates from BM25 KNN and queries

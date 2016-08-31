@@ -12,10 +12,9 @@ from collections import defaultdict
 from knn_data import Data
 from collections import Counter
 from operator import itemgetter
-from candidates_find_tops_BM25KNN import BM25KNN_top_candidates
+from candidates_from_BM25KNN import BM25KNN_candidates
 
-class Eval_BM25_KNN_candidates(BM25KNN_top_candidates):
-    '''Use NLM2007 as query, use a customized corpus '''
+class Eval_BM25_KNN_candidates(BM25KNN_candidates):
     def __init__(self, data_dir, data2_dir, knn_base_dir, out_dir, time_span, pmid_year_dict_file):
         super(Eval_BM25_KNN_candidates, self).__init__(data_dir, data2_dir, knn_base_dir, out_dir, time_span, pmid_year_dict_file)
         self.qpmid_std_mesh_file = os.path.join(self.out_dir, "%s_qpmid_std_mesh.pkl"%(self.query_dataset)) ## gold standard MeSH terms of query PMIDs
