@@ -121,12 +121,9 @@ def main():
     print "MTI pred matrix size: ", vocab_emb_mti.shape
     print
 
-    ## for words in sentences
-    # Load word2vec embeddings
-    util_dir = "/home/w2wei/projects/pointwiseLTR/data/utils"
+    ## Load word2vec embeddings
     emb_file_name = "emb_dim100_sample_1M_window_5.ml.npy" # sys.argv[2]    
-    fname = os.path.join(util_dir, emb_file_name) ## 10K training data
-    print "Loading word embeddings from ", emb_file_name
+    fname = os.path.join(data_dir, emb_file_name) ## 10K training data
     vocab_emb = numpy.load(fname)
     ndim = vocab_emb.shape[1]
     dummpy_word_idx = numpy.max(a_train)

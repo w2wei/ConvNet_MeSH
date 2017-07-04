@@ -11,7 +11,7 @@ P1.candidates_build.py (old name: corpus_medline_build.py)
    Retrieve all PMID for given years from PubMed, and then download MEDLINE associated with these PMID. 
 
 P2.candidates_sort.py (old name: corpus_medline_sort.py)
-   Find the latest 9M MEDLINE from 10M records during 2004 and 2016 because most papers after Dec 2015 do not have MeSH terms. This class will be deprecated.
+   Find the latest 9M MEDLINE from 10M records during 2004 and 2016 because most papers after Dec 2015 do not have MeSH terms. This class is deprecated.
 
 P3.candidates_index.py (old name: corpus_medline_index.py)
    Process the 9M raw MEDLINE docuemnts and extract titles and abstracts, and index them using pyLucene.
@@ -38,7 +38,10 @@ P9.candidates_from_BM25KNN.py
    Find candiates from BM25KNN neighbors
 
 P10.candidates_tops_from_BM25_and_queries.py
-    Get top candidates from BM25KNN neighbors and queries
+   Get top candidates from BM25KNN neighbors and queries
+
+P11.candidates_prepare_samples.py
+   Prepare sample PMIDs from the selected MEDLINE corporus
 
 
 

@@ -297,6 +297,38 @@ class LinearLayer(Layer):
   def __repr__(self):
     return "{}: W_shape={} b_shape={} activation={}".format(self.__class__.__name__, self.W.shape.eval(), self.b.shape.eval(), self.activation)
 
+class Linear4NoTranslateLayer(Layer):
+  def __init__(self, rng, n_in, n_out, W=None, b=None, activation=T.tanh):
+    super(Linear4NoTranslateLayer, self).__init__()
+
+    if W is None:
+      W_values = numpy.asarray(rng.uniform(
+                low=-numpy.sqrt(6. / (n_in + n_out)),
+                high=numpy.sqrt(6. / (n_in + n_out)),
+                size=(n_in, n_out)), dtype=theano.config.floatX)
+
+      W = theano.shared(value=W_values, name='W', borrow=True)
+    if b is None:
+      b = build_shared_zeros((n_out,), 'b')
+
+    self.W = W
+    self.b = b
+
+    self.activation = activation
+
+    self.weights = [self.W]
+    self.biases = [self.b]
+
+  def output_func(self, input):
+    q, a = input[0], input[1]
+    con_input = T.concatenate([q, a], axis=1)    
+    # T.concatenate([dot.dimshuffle(0, 'x'), q, a], axis=1)
+    return self.activation(T.dot(con_input, self.W) + self.b)
+
+  def __repr__(self):
+    return "{}: W_shape={} b_shape={} activation={}".format(self.__class__.__name__, self.W.shape.eval(), self.b.shape.eval(), self.activation)
+
+
 
 
 class NonLinearityLayer(Layer):
@@ -819,6 +851,24 @@ class PairwiseNoFeatsLayer(Layer):
         q, a = input[0], input[1]
         # dot = T.batched_dot(q, T.batched_dot(a, self.W))
         dot = T.batched_dot(q, T.dot(a, self.W.T))
+        out = T.concatenate([dot.dimshuffle(0, 'x'), q, a], axis=1)
+        return out
+
+class PairwiseNoFeatsNoTranslateLayer(Layer):
+    def __init__(self, q_in, a_in, activation=T.tanh):
+        super(PairwiseNoFeatsNoTranslateLayer, self).__init__()
+
+        W = build_shared_zeros((q_in, a_in), 'W_softmax_pairwise')
+        self.W = W
+        self.weights = [self.W]
+    def __repr__(self):
+        return "{}: W={}".format(self.__class__.__name__, self.W.shape.eval())
+
+    def output_func(self, input):
+        # P(Y|X) = softmax(W.X + b)
+        q, a = input[0], input[1]
+        # dot = T.batched_dot(q, T.batched_dot(a, self.W))
+        # dot = T.batched_dot(q, T.dot(a, self.W.T))
         out = T.concatenate([dot.dimshuffle(0, 'x'), q, a], axis=1)
         return out
 

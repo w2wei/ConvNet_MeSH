@@ -115,7 +115,7 @@ def main():
     # fname = os.path.join(data_dir, 'emb_dim100_sample_10K_win5_model.ml.npy')
     # fname = "/home/w2wei/projects/pointwiseLTR/data/utils/emb_dim100_sample_10K_win5_model.ml.npy" ## 1.3M training data
     util_dir = "/home/w2wei/projects/pointwiseLTR/data/utils"
-    emb_file_name = "emb_dim100_sample_1M_window_5.ml.npy" # sys.argv[2]
+    emb_file_name = "emb_1960_2015_raw_sents_dim_300.ml.npy" # sys.argv[2]
     # emb_file_name = "emb_dim100_sample_10K_win5_model.ml.npy"
     fname = os.path.join(util_dir, emb_file_name) ## 10K training data
     print "Loading word embeddings from ", emb_file_name

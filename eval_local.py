@@ -59,8 +59,8 @@ def micro(data):
 
 
 def main():
-    exp = "Exp_21"
-    pred_file = "Exp_21;ndim=110;batch=5;max_norm=0;learning_rate=0.1;2016-07-11-22.39.17/test.epoch=05;batch=00012;dev_acc=86.29.predictions.npy"
+    exp = "Exp_35"
+    pred_file = "Exp_35;ndim=110;batch=5;max_norm=0;learning_rate=0.1;2016-08-29-11.19.50/test.epoch=11;batch=00012;dev_acc=87.58.predictions.npy"
 
     # Load data
     pmid_file ='/home/w2wei/projects/pointwiseLTR/data/knn_sample/%s/test.qids.npy'%exp
@@ -70,9 +70,14 @@ def main():
     pred_prob = np.loadtxt(pred_prob_file)
     std_file = "/home/w2wei/projects/pointwiseLTR/data/knn_sample/%s/test.labels.npy"%exp
     std = np.load(std_file) ## gold standard labels
+
+    print pred_prob
+    print len(pred_prob)
+
+
     pred = []
     for x in pred_prob:
-        if x>=0.1:
+        if x>=0.5:
             pred.append(1)
         else:
             pred.append(0)

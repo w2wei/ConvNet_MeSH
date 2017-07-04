@@ -90,6 +90,10 @@ def parse(rawDataFile, outDir):
 
 def loadAll():
     '''Load all '''
+    ## For idash-data
+    # utils_dir = "/home/w2wei/data/nlm_data"
+    # raw_mesh_file = os.path.join(utils_dir,"d2016.bin")
+    # vocab_dir = os.path.join(utils_dir, "mesh_entry_vocab")    
     ## For idash-cloud
     utils_dir = "/home/w2wei/projects/pointwiseLTR/data/utils/"
     raw_mesh_file = os.path.join(utils_dir,"d2016.bin")

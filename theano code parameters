@@ -1,0 +1,60 @@
+theano code parameters
+e.g. exp 38
+
+q_max_sent_size
+a_max_sent_size
+overlap ndim: 5
+vocab_emb_overlap shape: 
+knn count ndim: 5
+vocab_emb_knn_count shape: 
+vocab_emb shape
+word_vocab_size
+word_embedding_dims
+
+nb_out = 2
+nb_epoch = 25
+batch_size = 5
+learning_rate = 0.1
+dropout_rate = 0
+max_norm = 0
+
+activation = T.tanh
+nb_filter = 100 # nkernels = 100 # filter number
+q_k_max = 1 # k max pooling
+a_k_max = 1 # k max pooling
+
+q_filter_widths = [5]
+a_filter_widths = [5]
+
+Conv2dLayer # 2D convolution
+
+cost: negative_log_likelihood
+
+hidden_dims
+
+=========================
+keras code parameters
+e.g. exp 50
+
+q_max_sent_size = 487
+a_max_sent_size = 162
+overlap ndim: 5
+vocab_emb_overlap shape: 
+knn count ndim: 5
+vocab_emb_knn_count shape: 
+vocab_emb shape (124660, 100)
+dummy word idx  124659
+
+nb_out = 2 
+nb_epoch = 3
+nb_filter = 100
+filter_length = 5 
+batch_size = 50
+word_vocab_size = 124660 
+word_embedding_dims = 100
+q_maxlen = 487
+a_maxlen = 162
+hidden_dims = 250
+dropout_rate = 0.5
+learning_rate = 0.1
+max_norm = 0

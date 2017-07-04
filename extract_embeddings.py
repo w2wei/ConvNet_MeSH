@@ -1,17 +1,16 @@
+'''
+    Prepare initial embeddings
+
+    Created on Sep 1, 2016
+    Updated on Sep 1, 2016
+    @author: Wei Wei
+'''
 import numpy as np
 import cPickle
 import os, sys
 from gensim import models
 from alphabet import Alphabet
 # from utils import load_bin_vec
-
-
-# def load_senna_vec():
-#     # word2vec = {}
-#     words = np.loadtxt('../data/words.lst', dtype='str')
-#     vecs = np.loadtxt('../data/embeddings.txt')
-#     word2vec = dict(zip(words, vecs))
-#     return word2vec
 
 def load_bin_vec(fmodel, train_vocab):
     '''Load trained word2vec vectors from PMCOA'''

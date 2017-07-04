@@ -1,0 +1,121 @@
+Goals
+1. Unsupervised features can beat manually crafted features
+2. Unsupervised features + designed features + postprocessing can beat Huang et al.
+3. Unsupervised features + designed features + postprocessing can beat state-of-art models
+
+Criteria: 
+Training and test sets are identical with Huang et al., i.e., training with SMALL 200, test with NLM2007 and L1000
+Top 25 candidates for evaluation
+Metrics: precision, recall, F1, and MAP
+
+Experiments for goal 1
+1. Unsupervised CNN feature
+(?) if unsupervised CNN feature is better than non-KNN features in Huang et al., this proves unsupervised CNN feature can beat manually designed features
+Exp_41
+Exp_42
+
+2. Unsupervised CNN feature + KNN feature
+(False) if both achieves better performance than Huang et al., this proves unsupervised CNN feature can beat manually designed features
+Exp_39
+Exp_40
+
+
+Experiments for goal 2
+1. CNN feature + KNN feature + overlap features + translation feature + synonym feature
+(?) if this feature set can beat Huang et al. on both test sets
+Exp_35
+Exp_32
+
+2. CNN feature + KNN feature + overlap features + translation feature + synonym feature + MTI feature
+(?) if this feature set can beat Huang et al. on both test sets
+Exp_36
+accuracy EbP EbR EbF MaP MaR MaF MiP MiR MiF
+0.22880353929586555 0.24695526487543307 0.7717351138069014 0.3644108063954454 0.22063346489718608 0.6670744334367534 0.5437379405808866 0.23805418719211824 0.7571484528006267 0.36222243043193103
+
+
+Exp_37
+
+Experiments for goal 3
+Training and test sets are from BioASQ. 
+Candidate number is not fixed to 25. 
+Evaluation metrics and the package is from BioASQ. 
+1. CNN feature + KNN feature + overlap features + translation feature + synonym feature + MTI feature + postprocessing
+(?) if this feature set can beat Peng et al. on BioASQ set using BioASQ evaluation package
+Exp_38: Training on 1600 randomly selected papers, test on L1000
+Exp_43: randomly select 60K for training, 6K for test, the same as Peng et al. 
+
+===========================
+
+1. run exp 41 and 42
+2. use larger validation set, does this improve performance? Exp39 --> Exp43, Exp_44, improved, but limited
+2. evauate the performance of all done experiments using local eval code and BioASQ eval code
+
+Bioasq_eval on Exp_38
+accuracy EbP EbR EbF MaP MaR MaF MiP MiR MiF
+0.34929214040749573 0.7499389597975125 0.3981309857002747 0.49716372239345713 0.6851230818048557 0.3003461218804875 0.3175643418632417 0.7435337588176016 0.3871447310887626 0.5091724653516592
+
+
+1. Evaluate MAP: with new code, analyze the contribution of every feature
+MAP is improved
+
+2. MeSH number prediction: experiments on Exp_38, try to improve performance
+a) Assume every PMID receives correct prediction on candidate number, what's F1? this is the upbound. Compare with Peng et al.
+50% threshold
+Micro F1 0.511
+
+40%
+0.709, 0.427, 0.532
+
+30%
+0.674, 0.467, 0.552
+
+25%
+0.652, 0.486, 0.557
+
+15%
+0.584, 0.534, 0.558
+
+10%
+0.541, 0.562, 0.551
+
+2* std #
+Micro F1 0.128
+
+============================
+
+notes after discussion with yupeng
+highlights
+1. Use a hybrid method of manually crafted features and unsupervised features
+2. Use no extra training data for features
+3. Use the same training and test data, achieve comparable MAPs, slighly better
+4. This means unsupervised features from CNN can be a powerful representation in MeSH assignment tasks
+
+in explanation, query and mesh candidates are inputs to CNN, mesh candidates are collected from various sources
+
+how to output learned vectors? use these vectors to predict top k values.
+
+
+===========================
+
+what I can do
+
+5. Writing
+
+How about top 50% candidates? performance?
+0.622501611863314 0.5066025360734587 0.5586037317390676
+
+7. Exp_44: 10K training and test on L1000, use Exp_38 code
+
+
+3. Clean BioASQ data. Larger training set, on the same test set as Peng. Compare results with MTI and Peng's results without MeSHNum
+
+4. Larger training set and test on BioASQ data: if MeSH number predictor works, apply it to larger dataset
+
+
+
+6. Use MetaLabeler
+
+
+
+
+

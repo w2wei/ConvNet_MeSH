@@ -161,12 +161,6 @@ def load_data(raw_data, stoplist, idx):
     qids, questions, answers, labels = [], [], [], []
     gold_std_answers = {}
     pmidList = raw_data.query_pmids
-
-    ## sample 200 pmids from L1000 for dev set
-    if len(pmidList)==1000:
-        pmidList=random.sample(pmidList, 200)
-    print "current dataset size: ", len(pmidList)
-
     for pmid in pmidList:
         title, abstract, raw_mesh = raw_data.query_tam[pmid]
         raw_question = " ".join(title+abstract)
@@ -212,7 +206,61 @@ def load_data(raw_data, stoplist, idx):
                 gold_std_answers[pmid].append(clean_mesh[0])
 
     return qids, questions, answers, labels, gold_std_answers
- 
+
+def load_sample_dev_data(raw_data, stoplist, idx):
+    '''Parse raw MEDLINE records; extract PMID, title, abstract, and MeSH'''
+    ## idx=0, train; idx=1, dev; idx=2, test
+    qids, questions, answers, labels = [], [], [], []
+    gold_std_answers = {}
+    pmidList = raw_data.query_pmids
+    pmidList = random.sample(pmidList, 200)## sample 200 examples from L1000 for validation/dev
+    print "sample dev size: ", len(pmidList)
+    for pmid in pmidList:
+        title, abstract, raw_mesh = raw_data.query_tam[pmid]
+        raw_question = " ".join(title+abstract)
+        clean_question = parser(raw_question)
+        std_raw_mesh = mesh_parser4Lu_data(raw_mesh) ## gold standard mesh terms, raw term, lower case
+        ## select candidates from 20 nearest neighbors
+        sorted_nbr_dict = sorted(raw_data.nbr_dict[pmid],key=itemgetter(1),reverse=True)[:20] 
+        cand_pmids = [x[0] for x in sorted_nbr_dict] # 20 nearest neighbor pmids
+        ## select candidates from 50 neighbor neighbors
+        # cand_pmids = [x[0] for x in obj_list[i].nbr_dict[pmid]] ## candidates from neighbors, from all 50 nbrs
+        cand_raw_mesh = get_cand_raw_mesh(cand_pmids, raw_data.nbr_tam)
+        ## answers
+        pos_meshList = list(set(std_raw_mesh)&set(cand_raw_mesh))
+        ## keep all false terms from 20-NN candidates
+        neg_meshList = list(set(cand_raw_mesh)-set(pos_meshList))
+
+        meshNum = len(pos_meshList)+len(neg_meshList) ## answer number for this PMID
+
+        for p_mesh in pos_meshList:
+            answer = rawMesh_meshAndEntry_dict.get(p_mesh) # answer may contain None
+            if not answer: # if answer==None
+                answer = [indvidual_mesh_parser(p_mesh)] # answer is the pseudo mesh term itself                  
+            answers.append(answer)
+            qids.append(pmid)
+            questions.append(clean_question)
+            labels.append(1)
+
+        for n_mesh in neg_meshList:
+            answer = rawMesh_meshAndEntry_dict.get(n_mesh) ## clean mesh terms and entry terms
+            if not answer: # if answer==None
+                answer = [indvidual_mesh_parser(n_mesh)] # answer is the pseudo mesh term itself       
+            answers.append(answer) #  answer may contain None
+            qids.append(pmid)
+            questions.append(clean_question)
+            labels.append(0)
+
+        gold_std_answers[pmid] = []
+        for r_mesh in std_raw_mesh:
+            clean_mesh = rawMesh_meshAndEntry_dict.get(r_mesh)
+            if not clean_mesh:
+                gold_std_answers[pmid].append(r_mesh)
+            else:
+                gold_std_answers[pmid].append(clean_mesh[0])
+
+    return qids, questions, answers, labels, gold_std_answers
+
 def compute_overlap_features(questions, answers, word2df=None, stoplist=None):
     '''the overlap percentage of tokens between evey pair of question and answer'''
     word2df = word2df if word2df else {}
@@ -407,24 +455,28 @@ if __name__ == '__main__':
     '''
     ## raw data preparation: prepare three files, train, dev and test. ready to use. the remaining code just need files names
     data_dir = "/home/w2wei/projects/pointwiseLTR/data/knn_sample"
-    raw_data_dir = os.path.join(data_dir, "raw_data")    
-    train_dir = os.path.join(raw_data_dir, "L1000")
-    train_mti_file = os.path.join(train_dir, "L1000_MTI.out")
-    dev_dir = os.path.join(raw_data_dir, "SMALL200")
-    dev_mti_file = os.path.join(dev_dir, "S200_MTI.out")
+    raw_data_dir = os.path.join(data_dir, "raw_data")
+    clean_data_dir = os.path.join(data_dir, "clean_data")
+
+
+    train_dir = os.path.join(raw_data_dir, "SMALL200")
+    train_mti_file = os.path.join(train_dir, "S200_MTI.out")
+
+    dev_dir = os.path.join(raw_data_dir, "L1000")
+    dev_mti_file = os.path.join(dev_dir, "L1000_MTI.out")
+
     test_dir= os.path.join(raw_data_dir, "NLM2007")
     test_mti_file = os.path.join(test_dir, "NLM2007_MTI.out")
-    clean_data_dir = os.path.join(data_dir, "clean_data")
 
     ## pre-process the raw data to generate data objects 
     raw_train = Data(raw_data_dir, clean_data_dir)
-    raw_train.large1000()
-    raw_dev = Data(raw_data_dir, clean_data_dir)    
-    raw_dev.small200()
+    raw_train.small200()    
+    raw_dev = Data(raw_data_dir, clean_data_dir)
+    raw_dev.large1000() 
     raw_test = Data(raw_data_dir, clean_data_dir)    
     raw_test.nlm2007()
-    ## Load MTI predictions for train/dev/test
 
+    ## Load MTI predictions for train/dev/test
 
     outdir = os.path.join(data_dir, wkdir)#'{}'.format(name.upper())
     if not os.path.exists(outdir):
@@ -463,9 +515,9 @@ if __name__ == '__main__':
     # Convert dev and test sets
     # for fname in [train, dev, test]: ## extract additional features from all datasets
     
-    obj_list = [raw_train, raw_dev, raw_test]
-    mti_file_list = [train_mti_file, dev_mti_file, test_mti_file]
-    name_list = ['train','dev','test']
+    obj_list = [raw_train, raw_test]
+    mti_file_list = [train_mti_file, test_mti_file]
+    name_list = ['train','test']
 
     for i in range(len(obj_list)):
         qids, questions, answers, labels, std_mesh_dict = load_data(obj_list[i], stoplist, i)
@@ -486,35 +538,6 @@ if __name__ == '__main__':
         answers_idx = convert2indices(answers, alphabet, dummy_word_idx, a_max_sent_length)
 
         basename = name_list[i]
-        # print basename
-        # print "basename ", basename
-        # print os.path.join(outdir, '{}.qids.npy'.format(basename))
-        # print qids.shape
-        # print os.path.join(outdir, '{}.questions.npy'.format(basename))
-        # print questions_idx.shape
-        # print os.path.join(outdir, '{}.answers.npy'.format(basename))
-        # print answers_idx.shape
-        # print os.path.join(outdir, '{}.labels.npy'.format(basename))
-        # print labels.shape
-        # print os.path.join(outdir, '{}.q_overlap_indices.npy'.format(basename))
-        # print q_overlap_indices.shape
-        # print os.path.join(outdir, '{}.a_overlap_indices.npy'.format(basename))
-        # print a_overlap_indices.shape
-        # print os.path.join(outdir, '{}.q_knn_counts.npy'.format(basename))
-        # print q_knn_counts.shape
-        # print os.path.join(outdir, '{}.a_knn_counts.npy'.format(basename))
-        # print a_knn_counts.shape
-        # print os.path.join(outdir, '{}.cand_mesh.pkl'.format(basename))
-        # print len(cand_answer_tokens), cand_answer_tokens[:10]
-        # print os.path.join(outdir, '{}.std_mesh.pkl'.format(basename))
-        # print len(std_mesh_dict), std_mesh_dict.items()[:2]
-        # print os.path.join(outdir, '{}.q_mti.npy'.format(basename))
-        # print q_mti_pred.shape
-        # print os.path.join(outdir, '{}.a_mti.npy'.format(basename))
-        # print a_mti_pred.shape
-        # raw_input("wait...")
-
-        print "saving %s data..."%(basename)
         np.save(os.path.join(outdir, '{}.qids.npy'.format(basename)), qids)
         np.save(os.path.join(outdir, '{}.questions.npy'.format(basename)), questions_idx)
         np.save(os.path.join(outdir, '{}.answers.npy'.format(basename)), answers_idx)
@@ -527,7 +550,44 @@ if __name__ == '__main__':
         np.save(os.path.join(outdir, '{}.a_mti.npy'.format(basename)), a_mti_pred)
         cPickle.dump(cand_answer_tokens, file(os.path.join(outdir, '{}.cand_mesh.pkl'.format(basename)),'w'))
         cPickle.dump(std_mesh_dict, file(os.path.join(outdir, '{}.std_mesh.pkl'.format(basename)),'w'))
+        print "saving %s data..."%(basename)
 
+    obj_list = [raw_dev]
+    mti_file_list = [dev_mti_file]
+    name_list = ['dev']
+
+    for i in range(len(obj_list)):
+        qids, questions, answers, labels, std_mesh_dict = load_sample_dev_data(obj_list[i], stoplist, i)
+        cand_answer_tokens = [ans[0] for ans in answers] ## save answer_tokens
+        candFreqDict = load_knn_rel_data(obj_list[i])
+
+        qids = np.array(qids)
+        labels = np.array(labels).astype('int32')
+
+        _, counts = np.unique(labels, return_counts=True) ## counts of unique components in label array
+
+        q_knn_counts, a_knn_counts = compute_knn_features(qids, questions, answers, candFreqDict)
+        q_mti_pred, a_mti_pred = compute_mti_features(qids, questions, answers, mti_file_list[i])
+
+        q_overlap_indices, a_overlap_indices = compute_overlap_idx(questions, answers, stoplist, q_max_sent_length, a_max_sent_length)
+
+        questions_idx = convert2indices(questions, alphabet, dummy_word_idx, q_max_sent_length)
+        answers_idx = convert2indices(answers, alphabet, dummy_word_idx, a_max_sent_length)
+
+        basename = name_list[i]
+        np.save(os.path.join(outdir, '{}.qids.npy'.format(basename)), qids)
+        np.save(os.path.join(outdir, '{}.questions.npy'.format(basename)), questions_idx)
+        np.save(os.path.join(outdir, '{}.answers.npy'.format(basename)), answers_idx)
+        np.save(os.path.join(outdir, '{}.labels.npy'.format(basename)), labels)
+        np.save(os.path.join(outdir, '{}.q_overlap_indices.npy'.format(basename)), q_overlap_indices)
+        np.save(os.path.join(outdir, '{}.a_overlap_indices.npy'.format(basename)), a_overlap_indices)
+        np.save(os.path.join(outdir, '{}.q_knn_counts.npy'.format(basename)), q_knn_counts)
+        np.save(os.path.join(outdir, '{}.a_knn_counts.npy'.format(basename)), a_knn_counts)
+        np.save(os.path.join(outdir, '{}.q_mti.npy'.format(basename)), q_mti_pred)
+        np.save(os.path.join(outdir, '{}.a_mti.npy'.format(basename)), a_mti_pred)
+        cPickle.dump(cand_answer_tokens, file(os.path.join(outdir, '{}.cand_mesh.pkl'.format(basename)),'w'))
+        cPickle.dump(std_mesh_dict, file(os.path.join(outdir, '{}.std_mesh.pkl'.format(basename)),'w'))
+        print "saving %s data..."%(basename)        
 
 
 

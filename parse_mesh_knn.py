@@ -18,7 +18,10 @@ from nltk.tokenize import sent_tokenize,TreebankWordTokenizer
 printable = set(string.printable)
 replace_punctuation = string.maketrans(string.punctuation, ' '*len(string.punctuation))
 from new_mesh_and_entry_vocab import loadAll
-raw_mesh_entry_vocab, mesh_phrase_idx, mesh_phrase_dict, rawMesh_meshAndEntry_dict = loadAll() ## in mesh_phrase_vocab, tokens in phrases are connected with underscores, e.g., rna seq -> rna_seq
+utils_dir=
+raw_mesh_file
+mesh_entry_vocab_dir
+raw_mesh_entry_vocab, mesh_phrase_idx, mesh_phrase_dict, rawMesh_meshAndEntry_dict = loadAll(utils_dir, raw_mesh_file, mesh_entry_vocab_dir) ## in mesh_phrase_vocab, tokens in phrases are connected with underscores, e.g., rna seq -> rna_seq
 raw_mesh_vocab = rawMesh_meshAndEntry_dict.keys()
 clean_mesh_vocab = [x[0] for x in rawMesh_meshAndEntry_dict.values()]
 raw_mesh_set = set(raw_mesh_vocab)

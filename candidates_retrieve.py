@@ -8,7 +8,7 @@
 import os, lucene, re, time, cPickle, sys
 from knn_data import Data
 from collections import defaultdict
-from corpus_medline_index import PorterStemmerAnalyzer
+from candidates_index import PorterStemmerAnalyzer
 
 from java.io import File
 from org.apache.lucene.analysis.standard import StandardAnalyzer
@@ -57,10 +57,14 @@ class Retrieve(object):
         return result   
 
     def submit(self, searcher, analyzer, query_dict):
-        '''Query the indexed latest 3M MEDLINE'''
+        '''Query the indexed MEDLINE'''
+        count=0
         for pmid, text in query_dict.iteritems():
+            count+=1
             ret = self.run(searcher, analyzer, text)
             self.result[pmid] = ret
+            if count%1000==0:
+                print "%d queries submitted"%count
 
 def load_lu_query_data(data_dir):
     '''Prepare queries for query from Lu data'''
@@ -105,6 +109,7 @@ def submit_queries(query_dict, index_dir, index_file, knn_file):
         t1=time.time()
         print "Time for %d queries: "%(len(query_dict)), t1-t0
         cPickle.dump(result, file(knn_file, "w"))
+    return result
 
 def submit_lu_queries(queries, index_dir, index_file, knn_file):
     '''Query the indexed MEDLINE'''

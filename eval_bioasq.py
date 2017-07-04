@@ -81,17 +81,17 @@ def loadMeshIdxDict(fname):
     return mesh_idx_dict
 
 def main():
-    exp = "Exp_30"
+    exp = "Exp_38"
     pmid_file ='/home/w2wei/projects/pointwiseLTR/data/knn_sample/%s/test.qids.npy'%exp
     pmid_list = np.load(pmid_file)
-    pred_prob_file = "/home/w2wei/projects/pointwiseLTR/src/deep-qa/exp.out/Exp_30; ndim=115;batch=5;max_norm=0;learning_rate=0.1;2016-07-11-22.34.10/test.epoch=04;batch=00014;dev_acc=88.05.predictions.npy"
+    pred_prob_file = "/home/w2wei/projects/pointwiseLTR/src/deep-qa/exp.out/Exp_38;ndim=110;batch=5;max_norm=0;learning_rate=0.1;2016-09-01-12.39.02/test.epoch=05;batch=00012;dev_acc=87.24.predictions.npy"
     pred_prob = np.loadtxt(pred_prob_file)
     std_file = "/home/w2wei/projects/pointwiseLTR/data/knn_sample/%s/test.labels.npy"%exp
     std = np.load(std_file) ## gold standard labels
 
     pred = []
     for x in pred_prob:
-        if x>=0.5:
+        if x>=0.4:
             pred.append(1)
         else:
             pred.append(0)
@@ -140,7 +140,7 @@ def main():
         local_data = result[result['pmid']==pmid]
         pred = local_data[local_data['pred']>=0.5]['mesh']
         outDict['pmid']=pmid
-        outDict['labels']=list(pred)
+        outDict['labels']=filter(None, list(pred))
         outList.append(outDict)
 
     cand_mesh_idx_dict = defaultdict()
@@ -168,9 +168,9 @@ def main():
     print "fsys_mapped: ", fsys_mapped
     print 'fstd: ', fstd
     print "fstd_mapped: ", fstd_mapped
-    subprocess.call("java -Xmx10G -cp ./bioasq_eval/flat/BioASQEvaluation/dist/BioASQEvaluation.jar converters.MapMeshResults mesh/mapping.txt %s %s"%(fsys, fsys_mapped), shell=True)
-    subprocess.call("java -Xmx10G -cp ./bioasq_eval/flat/BioASQEvaluation/dist/BioASQEvaluation.jar converters.MapMeshResults mesh/mapping.text %s %s"%(fstd, fstd_mapped), shell=True)
-    subprocess.call("java -Xmx10G -cp ./bioasq_eval/flat/BioASQEvaluation/dist/BioASQEvaluation.jar evaluation.Evaluator %s %s"%(fstd_mapped, fsys_mapped), shell=True)
+    # subprocess.call("java -Xmx10G -cp ../bioasq_eval/flat/BioASQEvaluation/dist/BioASQEvaluation.jar converters.MapMeshResults mesh/mapping.txt %s %s"%(fsys, fsys_mapped), shell=True)
+    # subprocess.call("java -Xmx10G -cp ../bioasq_eval/flat/BioASQEvaluation/dist/BioASQEvaluation.jar converters.MapMeshResults mesh/mapping.text %s %s"%(fstd, fstd_mapped), shell=True)
+    # # subprocess.call("java -Xmx10G -cp ./bioasq_eval/flat/BioASQEvaluation/dist/BioASQEvaluation.jar evaluation.Evaluator %s %s"%(fstd_mapped, fsys_mapped), shell=True)
 
     # java -Xmx10G -cp ./bioasq_eval/flat/BioASQEvaluation/dist/BioASQEvaluation.jar evaluation.Evaluator /home/w2wei/projects/pointwiseLTR/data/knn_sample/Exp_21/std_mesh_mapped.txt /home/w2wei/projects/pointwiseLTR/data/knn_sample/Exp_21/sys_mesh_mapped.txt
 if __name__ == '__main__':
