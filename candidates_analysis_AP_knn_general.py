@@ -17,7 +17,7 @@ from knn_data import Data
 from collections import Counter
 from Bio import Entrez
 from operator import itemgetter
-Entrez.email = "your@email.here"
+Entrez.email = "w2wei@ucsd.edu"
 
 class NotImplementedError(Exception):
     def __init__(self, msg):
